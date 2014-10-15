@@ -3,7 +3,7 @@
 #include "cGame.h"
 
 //Delete console
-#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
+#pragma comment(linker, "/subsystem:\"console\" /entry:\"mainCRTStartup\"")
 
 //Avoid rendering too fast
 #define FPS 50

@@ -3,10 +3,14 @@
 #include "cScene.h"
 #include "cPlayer.h"
 #include "cData.h"
+#include "cEnemy.h"
+#include "cProjectile.h"
+
 
 #define GAME_WIDTH	640
 #define GAME_HEIGHT 480
 
+#define MAX_PROJECTILES 30
 class cGame
 {
 public:
@@ -30,4 +34,7 @@ private:
 	cScene Scene;
 	cPlayer Player;
 	cData Data;
+	cEnemy Enemy;
+	cProjectile Bullet;
+	cProjectile Bullets[MAX_PROJECTILES];
 };

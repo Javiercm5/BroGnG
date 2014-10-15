@@ -3,8 +3,8 @@
 #include "cTexture.h"
 #include "Globals.h"
 
-#define FRAME_DELAY		4
-#define STEP_LENGTH		2
+//#define FRAME_DELAY		4
+//#define STEP_LENGTH		2
 #define JUMP_HEIGHT		96
 #define JUMP_STEP		4
 
@@ -52,6 +52,7 @@ public:
 	int  GetState();
 	void SetState(int s);
 	void SetDirection(int r);	//NEW
+	bool isFacingRight();
 
 	void NextFrame(int max);
 	int  GetFrame();
@@ -70,5 +71,8 @@ protected:
 	bool facingRight;
 	bool jumping;
 	bool crouching;
+	bool canGoForward(bool goRight, int *map);
+	int STEP_LENGTH = 2;
+	int FRAME_DELAY = 4;
 
 };

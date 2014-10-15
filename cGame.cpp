@@ -27,17 +27,31 @@ bool cGame::Init()
 	//Scene initialization
 	res = Data.LoadImage(IMG_BLOCKS,"blocks.png",GL_RGBA);
 	if(!res) return false;
+	res = Data.LoadImage(IMG_MISC, "tilesheetMisc.png", GL_RGBA);
+	if (!res) return false;
 	res = Scene.LoadLevel(1);
 	if(!res) return false;
 
 	//Player initialization
 	res = Data.LoadImage(IMG_PLAYER,"tilesheet.png",GL_RGBA);
 	if(!res) return false;
-	Player.SetWidthHeight(36,40);
-	Player.SetTile(4,1);
-	Player.SetWidthHeight(36,40);
+	Player.SetWidthHeight(36, 40);
+	Player.SetTile(4, 1);
+	Player.SetWidthHeight(36, 40);
 	Player.SetState(STATE_LOOK);
 	Player.SetDirection(1);
+
+	
+
+	
+	//Enemies inicialitzations
+	Enemy.SetWidthHeight(36, 40);
+	Enemy.SetTile(10, 1);
+	Enemy.SetWidthHeight(36, 40);
+	Enemy.SetState(STATE_WALK);
+	Enemy.SetDirection(1);
+
+
 
 	return res;
 }
@@ -84,7 +98,13 @@ bool cGame::Process()
 	
 	//Game Logic
 	Player.Logic(Scene.GetMap());
+	Bullet.logic(Scene.GetMap());
 
+	int px, py;
+	Player.GetPosition(&px, &py);
+
+	Enemy.intelligence(Scene.GetMap(), px, py);
+	Enemy.Logic(Scene.GetMap());
 	return res;
 }
 
@@ -97,6 +117,17 @@ void cGame::Render()
 
 	Scene.Draw(Data.GetID(IMG_BLOCKS));
 	Player.Draw(Data.GetID(IMG_PLAYER));
+	if (Player.GetState() == STATE_SHOOT){
+
+		int xb;
+		int yb;
+		Player.GetPosition(&xb, &yb);
+		Bullet.setPosition(xb, yb);
+		Bullet.aim(Player.isFacingRight());
+	}
+	Enemy.Draw(Data.GetID(IMG_PLAYER));
+
+	Bullet.draw(Data.GetID(IMG_MISC));
 
 	glutSwapBuffers();
 }

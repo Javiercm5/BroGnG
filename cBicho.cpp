@@ -166,6 +166,30 @@ void cBicho::MoveLeft(int *map)
 		}
 	}
 }
+
+bool cBicho::canGoForward(bool right, int *map)
+{
+	int xaux;
+
+	//Whats next tile?
+	if ((x % TILE_SIZE) == 0)
+	{
+		xaux = x;
+		(right ? x += STEP_LENGTH : x -= STEP_LENGTH);
+
+		if (CollidesMapWall(map, right))
+		{
+			x = xaux;
+			return false;
+		}
+		else{
+			x = xaux;
+			return true;
+		}
+	}
+	return true;
+}
+
 void cBicho::MoveRight(int *map)
 {
 	int xaux;
@@ -246,6 +270,7 @@ void cBicho::Logic(int *map)
 		//Over floor?
 		if(!CollidesMapFloor(map))
 			y -= (2*STEP_LENGTH);
+		//estat falling
 	}
 }
 
@@ -258,6 +283,11 @@ void cBicho::crouch()
 void cBicho::shoot()
 {
 	SetState(STATE_SHOOT);
+	/*cProjectile bullet;
+	bullet.setPosition(x, y);
+	bullet.aim(true);	///HARDCODED
+	bullet.draw();*/
+
 }
 
 void cBicho::SetDirection(int r)
@@ -290,4 +320,9 @@ int cBicho::GetState()
 void cBicho::SetState(int s)
 {
 	state = s;
+}
+
+bool cBicho::isFacingRight()
+{
+	return facingRight;
 }
