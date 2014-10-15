@@ -1,34 +1,27 @@
 #include "cProjectile.h"
 #include "cData.h"
 #include "cScene.h"
-
+#include "iostream"
 
 cProjectile::cProjectile()
 {
 	alive = false;
 }
 
-
 cProjectile::~cProjectile(){}
 
-cProjectile::cProjectile(bool shootRight, int xo, int yo)	//shoot (join setpos & aim
+void cProjectile::shoot(bool shootRight, int xo, int yo)	//shoot (join setpos & aim
 {
 	facingRight = shootRight;
 	posX = xo;
-	posY = yo;
+	posY = yo+35;
+	alive = true;
 }
 
-
-void cProjectile::setPosition(int xo, int yo)
-{
-	posX = xo;
-	posY = yo + 35;
+void cProjectile::impact(){
+	alive = false;
 }
 
-void cProjectile::aim(bool aimRight)
-{
-	facingRight = aimRight;
-}
 
 
 
@@ -36,24 +29,16 @@ void cProjectile::logic(int *map)
 {
 	int xaux;
 
-	//Whats next tile?
-	if ((posX % TILE_SIZE) == 0)
-	{
+	if ((posX % TILE_SIZE) == 0){
 		xaux = posX;
 		(facingRight ? posX += 3 : posX -= 3);
 
-		if (CollidesMapWall(map, facingRight))
-		{
-			posX = xaux;
-			alive = false;
+		if (CollidesMapWall(map, facingRight)){
+			impact();
 		}
+		//impactar enemic ese if ...
 	}
-	//Advance, no problem
-	else
-	{
-		(facingRight ? posX += 3 : posX -= 3);
-	}
-
+	else (facingRight ? posX += 3 : posX -= 3);
 }
 
 
@@ -82,18 +67,13 @@ bool cProjectile::CollidesMapWall(int *map, bool right)
 
 void cProjectile::draw(int tex_id)
 {
-	
-	float xo, yo, xf, yf;
 	float upp = 1.0f / 256.0f;	//Units Per Pixel
-	yo = upp * 7.0;
-	xo = 0.0f;
-	xf = xo + upp * 30.0f;
-	yf = yo - upp * 7.0f;
-
-	int screen_x, screen_y;
-
-	screen_x = posX + SCENE_Xo;
-	screen_y = posY + SCENE_Yo + (BLOCK_SIZE - TILE_SIZE);
+	float xo = 0.0f;
+	float xf = 15.0f * upp;
+	float yo = 4.0f * upp; 
+	float yf = 0.0f;
+	int screen_x = posX + SCENE_Xo;
+	int screen_y = posY + SCENE_Yo + (BLOCK_SIZE - TILE_SIZE);
 
 	glEnable(GL_TEXTURE_2D);
 
@@ -104,7 +84,6 @@ void cProjectile::draw(int tex_id)
 	glTexCoord2f(xf, yf);	glVertex2i(screen_x + w, screen_y + h);
 	glTexCoord2f(xo, yf);	glVertex2i(screen_x, screen_y + h);
 	glEnd();
-
 	glDisable(GL_TEXTURE_2D);
 	
 }

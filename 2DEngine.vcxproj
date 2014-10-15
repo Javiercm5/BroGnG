@@ -91,7 +91,7 @@
   <ItemGroup>
     <ClCompile Include="cBicho.cpp" />
     <ClCompile Include="cData.cpp" />
-    <ClCompile Include="cEnemy.cpp" />
+    <ClCompile Include="cZombie.cpp" />
     <ClCompile Include="cGame.cpp" />
     <ClCompile Include="cPlayer.cpp" />
     <ClCompile Include="cProjectile.cpp" />
@@ -102,7 +102,7 @@
   <ItemGroup>
     <ClInclude Include="cBicho.h" />
     <ClInclude Include="cData.h" />
-    <ClInclude Include="cEnemy.h" />
+    <ClInclude Include="cZombie.h" />
     <ClInclude Include="cGame.h" />
     <ClInclude Include="cPlayer.h" />
     <ClInclude Include="cProjectile.h" />

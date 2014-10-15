@@ -35,7 +35,7 @@
     <ClCompile Include="cProjectile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cEnemy.cpp">
+    <ClCompile Include="cZombie.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -64,7 +64,7 @@
     <ClInclude Include="cProjectile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cEnemy.h">
+    <ClInclude Include="cZombie.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

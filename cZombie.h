@@ -2,17 +2,18 @@
 #include "cBicho.h"
 
 
-class cEnemy :
+class cZombie :
 	public cBicho
 {
 public:
-	cEnemy();
-	~cEnemy();
+	cZombie();
+	~cZombie();
 	void intelligence(int *map, int playerX, int playerY);
 	void Draw(int tex_id);
 
 
 private:
 	bool goRight;
+	bool alive;
 };
 

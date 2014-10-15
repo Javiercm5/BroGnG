@@ -10,14 +10,22 @@ void cPlayer::Draw(int tex_id)
 	float upp = 1.0f / 1024.0f;	//Units Per Pixel
 	
 	yo = upp * (facingRight ? 40.0f : 80.0f);
-	if (jumping) {
-		switch (GetState())
-		{
-		case STATE_LOOK:xo = 0.0f + upp*36.0f*7.0f; break;
-		case STATE_WALK:xo = 0.0f + upp*36.0f*8.0f; break;
-		case STATE_CROUCH:xo = 0.0f + upp*36.0f*7.0f; break;
-		case STATE_SHOOT:	xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
-				NextFrame(2); break;
+	
+	if (jumping) {	
+		xo = 0.0f + upp*36.0f*7.0f;
+		int state = GetState();
+		if (state == STATE_WALK) xo = 0.0f + upp*36.0f*8.0f;
+		else if (state == STATE_SHOOT){
+			xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
+			NextFrame(2);
+		}
+	}
+
+	else if (falling){
+		xo = 0.0f + upp*36.0f*7.0f;
+		if (GetState() == STATE_SHOOT) {
+			xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
+			NextFrame(2);
 		}
 	}
 	else{
@@ -26,7 +34,7 @@ void cPlayer::Draw(int tex_id)
 			case STATE_LOOK:	xo = 0.0f; break;
 			case STATE_WALK:	xo = 0.0f + (GetFrame()*(upp*36.0f));
 								NextFrame(7); break;
-			case STATE_CROUCH:	xo = 0.0f + upp*36.0f*11.0f; break;
+			//case STATE_CROUCH:	xo = 0.0f + upp*36.0f*11.0f; break;
 
 			case STATE_SHOOT:	xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
 								NextFrame(2); break;

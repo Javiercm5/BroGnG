@@ -9,7 +9,7 @@ private:
 
 
 	int w = 30;
-	int h = 7;
+	int h = 8;
 
 
 	bool CollidesMapWall(int *map, bool right);
@@ -17,10 +17,12 @@ private:
 public:
 	cProjectile();
 	~cProjectile();
-	cProjectile(bool shootRight, int xo, int yo);
 
-	void setPosition(int xo, int yo);
-	void aim(bool aimRight);
+	void shoot(bool shootRight, int xo, int yo);
+	void impact();
+
+
+
 	bool isAlive();
 	void logic(int *map);
 

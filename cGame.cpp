@@ -42,11 +42,10 @@ bool cGame::Init()
 	Player.SetDirection(1);
 
 	
-
 	
 	//Enemies inicialitzations
 	Enemy.SetWidthHeight(36, 40);
-	Enemy.SetTile(10, 1);
+	Enemy.SetTile(10, 10);
 	Enemy.SetWidthHeight(36, 40);
 	Enemy.SetState(STATE_WALK);
 	Enemy.SetDirection(1);
@@ -91,18 +90,37 @@ bool cGame::Process()
 	if(keys[GLUT_KEY_UP])			Player.Jump(Scene.GetMap());
 	if(keys[GLUT_KEY_LEFT])			Player.MoveLeft(Scene.GetMap());
 	else if(keys[GLUT_KEY_RIGHT])	Player.MoveRight(Scene.GetMap());
-	else if(keys[GLUT_KEY_DOWN])	Player.crouch();
+	//else if(keys[GLUT_KEY_DOWN])	Player.crouch();
 	else if (keys[32])				Player.shoot();
 	else Player.Stop();
 	
 	
-	//Game Logic
+	//--GAME LOGIC
+
+	//Player logic
 	Player.Logic(Scene.GetMap());
-	Bullet.logic(Scene.GetMap());
 
 	int px, py;
 	Player.GetPosition(&px, &py);
 
+	if (Player.GetState() == STATE_SHOOT){
+		for (int i = 0; i < MAX_PROJECTILES; ++i){
+			if (!Bullets[i].isAlive()) {
+				Bullets[i].shoot(Player.isFacingRight(), px, py);
+				break;
+			}
+		}
+	}
+
+	//Projectiles logic
+	for (int i = 0; i < MAX_PROJECTILES; ++i){
+		if (Bullets[i].isAlive()) {
+			Bullets[i].logic(Scene.GetMap());
+		}
+	}
+
+
+	//Enemies logic
 	Enemy.intelligence(Scene.GetMap(), px, py);
 	Enemy.Logic(Scene.GetMap());
 	return res;
@@ -117,17 +135,12 @@ void cGame::Render()
 
 	Scene.Draw(Data.GetID(IMG_BLOCKS));
 	Player.Draw(Data.GetID(IMG_PLAYER));
-	if (Player.GetState() == STATE_SHOOT){
 
-		int xb;
-		int yb;
-		Player.GetPosition(&xb, &yb);
-		Bullet.setPosition(xb, yb);
-		Bullet.aim(Player.isFacingRight());
+	for (int i = 0; i < MAX_PROJECTILES; ++i) {
+		if (Bullets[i].isAlive()) Bullets[i].draw(Data.GetID(IMG_MISC));
 	}
-	Enemy.Draw(Data.GetID(IMG_PLAYER));
 
-	Bullet.draw(Data.GetID(IMG_MISC));
+	Enemy.Draw(Data.GetID(IMG_PLAYER));
 
 	glutSwapBuffers();
 }

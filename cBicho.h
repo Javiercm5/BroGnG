@@ -70,6 +70,7 @@ private:
 protected:
 	bool facingRight;
 	bool jumping;
+	bool falling;
 	bool crouching;
 	bool canGoForward(bool goRight, int *map);
 	int STEP_LENGTH = 2;

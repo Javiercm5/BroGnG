@@ -6,7 +6,7 @@ cBicho::cBicho(void)
 {
 	seq=0;
 	delay=0;
-
+	falling = false;
 	jumping = false;
 	crouching = false;
 	facingRight = true;
@@ -227,6 +227,8 @@ void cBicho::Stop()
 		case STATE_WALK:	state = STATE_LOOK;	break;
 		case STATE_CROUCH:	state = STATE_LOOK;	break;
 	}
+	falling = false;
+	crouching = false;
 }
 void cBicho::Jump(int *map)
 {
@@ -243,7 +245,7 @@ void cBicho::Jump(int *map)
 void cBicho::Logic(int *map)
 {
 	float alfa;
-
+	falling = false;	//REVISAR
 	if(jumping)
 	{
 		jump_alfa += JUMP_STEP;
@@ -268,8 +270,11 @@ void cBicho::Logic(int *map)
 	else
 	{
 		//Over floor?
-		if(!CollidesMapFloor(map))
-			y -= (2*STEP_LENGTH);
+		if (!CollidesMapFloor(map)){
+			y -= (2 * STEP_LENGTH);
+
+			falling = true;
+		}
 		//estat falling
 	}
 }
@@ -277,16 +282,12 @@ void cBicho::Logic(int *map)
 
 void cBicho::crouch()
 {
-	SetState(STATE_CROUCH);
+	crouching = true;
 }
 
 void cBicho::shoot()
 {
 	SetState(STATE_SHOOT);
-	/*cProjectile bullet;
-	bullet.setPosition(x, y);
-	bullet.aim(true);	///HARDCODED
-	bullet.draw();*/
 
 }
 

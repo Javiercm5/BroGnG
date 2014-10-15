@@ -1,31 +1,33 @@
-#include "cEnemy.h"
+#include "cZombie.h"
 
-cEnemy::cEnemy()
+cZombie::cZombie()
 {
-
 	STEP_LENGTH = 1;
 	FRAME_DELAY = 8;
+	alive = true;
 }
 
 
-cEnemy::~cEnemy()
+cZombie::~cZombie()
 {
 }
 
-void cEnemy::intelligence(int *map, int playerX, int playerY)
+void cZombie::intelligence(int *map, int playerX, int playerY)
 {
 	//BASIC
+	STEP_LENGTH = 1;
 	if (canGoForward(true, map) == false) goRight = false;
 	if (canGoForward(false, map) == false) goRight = true;
 
 	int posx, posy;
 	GetPosition(&posx, &posy);
-	
+
+	//ATTACK
 	if (playerY == posy){
 		int threshold = std::abs(playerX - posx);
-		if (threshold <= 2 * 36){
-			//Follow
+		if (threshold <= 3 * 36){
 			(playerX > posx ? goRight = true : goRight = false);
+			STEP_LENGTH = 2;
 		}
 	}
 
@@ -34,35 +36,18 @@ void cEnemy::intelligence(int *map, int playerX, int playerY)
 	//TODO: IF Threshold, SpeedUP enemy
 }
 
-void cEnemy::Draw(int tex_id)
+void cZombie::Draw(int tex_id)
 {
 	float xo, yo, xf, yf;
 	float upp = 1.0f / 1024.0f;	//Units Per Pixel
 
 	yo = upp * (facingRight ? 120.0f : 160.0f);
-	if (jumping) {
-		switch (GetState())
-		{
-		case STATE_LOOK:xo = 0.0f + upp*36.0f*7.0f; break;
-		case STATE_WALK:xo = 0.0f + upp*36.0f*8.0f; break;
-		case STATE_CROUCH:xo = 0.0f + upp*36.0f*16.0f; break;
-		case STATE_SHOOT:	xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
-			NextFrame(2); break;
-		}
-	}
-	else{
-		switch (GetState())
-		{
+	switch (GetState())
+	{
 		case STATE_LOOK:	xo = 0.0f; break;
 		case STATE_WALK:	xo = 0.0f + (GetFrame()*(upp*36.0f));
-			NextFrame(4); break;
-		case STATE_CROUCH:	xo = 0.0f + upp*36.0f*11.0f; break;
-
-		case STATE_SHOOT:	xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
-			NextFrame(2); break;
-		}
+							NextFrame(4); break;
 	}
-
 	xf = xo + upp * 36.0f;
 	yf = yo - upp * 40.0f;
 

@@ -3,7 +3,7 @@
 #include "cScene.h"
 #include "cPlayer.h"
 #include "cData.h"
-#include "cEnemy.h"
+#include "cZombie.h"
 #include "cProjectile.h"
 
 
@@ -34,7 +34,6 @@ private:
 	cScene Scene;
 	cPlayer Player;
 	cData Data;
-	cEnemy Enemy;
-	cProjectile Bullet;
+	cZombie Enemy;
 	cProjectile Bullets[MAX_PROJECTILES];
 };
