@@ -7,10 +7,11 @@
 #include "cProjectile.h"
 
 
-#define GAME_WIDTH	640
-#define GAME_HEIGHT 480
+#define GAME_WIDTH	320
+#define GAME_HEIGHT 240
 
 #define MAX_PROJECTILES 30
+#define PROJECTILES_DELAY 15
 class cGame
 {
 public:
@@ -36,4 +37,8 @@ private:
 	cData Data;
 	cZombie Enemy;
 	cProjectile Bullets[MAX_PROJECTILES];
+	int bulletsDelay = PROJECTILES_DELAY;
+	int cameraX, cameraY;
+	//int GAME_WIDTH = 640;
+	//int GAME_HEIGHT = 480;
 };

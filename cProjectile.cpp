@@ -65,13 +65,13 @@ bool cProjectile::CollidesMapWall(int *map, bool right)
 
 
 
-void cProjectile::draw(int tex_id)
+void cProjectile::draw(int tex_id, bool facingRight)
 {
 	float upp = 1.0f / 256.0f;	//Units Per Pixel
+	float yo = upp *(facingRight ? 8.0f : 16.0f);
 	float xo = 0.0f;
-	float xf = 15.0f * upp;
-	float yo = 4.0f * upp; 
-	float yf = 0.0f;
+	float xf = 30.0f * upp;
+	float yf = yo - upp * 8.0f;
 	int screen_x = posX + SCENE_Xo;
 	int screen_y = posY + SCENE_Yo + (BLOCK_SIZE - TILE_SIZE);
 

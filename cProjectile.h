@@ -26,7 +26,7 @@ public:
 	bool isAlive();
 	void logic(int *map);
 
-	void draw(int tex_id);
+	void draw(int tex_id, bool facingRight);
 
 };
 
