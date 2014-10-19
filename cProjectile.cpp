@@ -22,6 +22,14 @@ void cProjectile::impact(){
 	alive = false;
 }
 
+void cProjectile::getAABB(int *minX, int *minY, int *maxX, int *maxY)
+{
+	*minX = posX;
+	*minY = posY;
+	*maxX = posX + w;
+	*maxY = posY + h;
+}
+
 
 
 
@@ -56,7 +64,7 @@ bool cProjectile::CollidesMapWall(int *map, bool right)
 
 	//for (j = 0; j<height_tiles; j++)
 	//{
-	if (map[tile_x + ((tile_y)*SCENE_WIDTH) ] != 0)	return true;
+	if (map[tile_x + ((tile_y)*SCENE_WIDTH) ] != -1)	return true;
 	//}
 
 	return false;
@@ -92,4 +100,13 @@ void cProjectile::draw(int tex_id, bool facingRight)
 bool cProjectile::isAlive()
 {
 	return alive;
+}
+
+AABB cProjectile::getAABB(){
+	AABB aabb;
+	aabb.minX = posX;
+	aabb.minY = posY;
+	aabb.maxX = posX + w;
+	aabb.maxY = posY + h;
+	return aabb;
 }

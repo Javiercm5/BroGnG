@@ -104,7 +104,7 @@ bool cGame::Process()
 
 	int px, py;
 	Player.GetPosition(&px, &py);
-
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	//cameraX = px - 1 / 3 * GAME_WIDTH;
@@ -131,15 +131,20 @@ bool cGame::Process()
 	cameraX += 1000/50 * cameraVx;
 	cameraX = min(cameraX, px - 2*GAME_WIDTH / 3);
 	cameraX = max(cameraX, px - GAME_WIDTH / 3);
+	cameraX = max(cameraX, SCENE_Xo);
+	cameraX = min(cameraX, GAME_WIDTH - SCENE_Xo);
 
 	cameraY += 1000 / 50 * cameraVy;
 	cameraY = min(cameraY, py - 2 * GAME_HEIGHT / 3);
 	cameraY = max(cameraY, py - GAME_HEIGHT / 3);
+	cameraY = max(cameraY, SCENE_Yo);
+	cameraY = min(cameraY, GAME_HEIGHT - SCENE_Yo);
+
 
 	glOrtho(cameraX, GAME_WIDTH + cameraX, cameraY, GAME_HEIGHT + cameraY, -1, 3);
 
 	glMatrixMode(GL_MODELVIEW);
-
+	
 
 	if (bulletsDelay == 0) bulletsDelay = PROJECTILES_DELAY;
 	if (bulletsDelay < PROJECTILES_DELAY)	--bulletsDelay;
@@ -157,14 +162,21 @@ bool cGame::Process()
 	//Projectiles logic
 	for (int i = 0; i < MAX_PROJECTILES; ++i){
 		if (Bullets[i].isAlive()) {
+			if (Enemy.isAlive() && Enemy.collidesWith(Bullets[i].getAABB())){
+				Enemy.die();
+				Bullets[i].impact();
+			}
 			Bullets[i].logic(Scene.GetMap());
 		}
 	}
 
 
 	//Enemies logic
-	Enemy.intelligence(Scene.GetMap(), px, py);
-	Enemy.Logic(Scene.GetMap());
+	if (Enemy.isAlive()){
+		Enemy.intelligence(Scene.GetMap(), px, py);
+		Enemy.Logic(Scene.GetMap());
+	}
+
 	return res;
 }
 
@@ -182,7 +194,7 @@ void cGame::Render()
 		if (Bullets[i].isAlive()) Bullets[i].draw(Data.GetID(IMG_MISC), Player.isFacingRight());
 	}
 
-	Enemy.Draw(Data.GetID(IMG_PLAYER));
+	if (Enemy.isAlive()) Enemy.Draw(Data.GetID(IMG_PLAYER));
 
 	glutSwapBuffers();
 }

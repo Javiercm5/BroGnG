@@ -20,6 +20,8 @@ public:
 		right,bottom;
 };
 
+
+
 class cBicho
 {
 public:
@@ -56,6 +58,13 @@ public:
 
 	void NextFrame(int max);
 	int  GetFrame();
+
+	void getAABB(int *minX, int *minY, int *maxX, int *maxY);
+
+	bool collidesWith(AABB other);
+	void die();
+	bool isAlive();
+
 	
 private:
 	int x,y;
@@ -66,6 +75,8 @@ private:
 	int jump_y;
 
 	int seq,delay;
+
+	int alive;
 
 protected:
 	bool facingRight;

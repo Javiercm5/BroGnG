@@ -10,6 +10,7 @@ cBicho::cBicho(void)
 	jumping = false;
 	crouching = false;
 	facingRight = true;
+	alive = true;
 }
 cBicho::~cBicho(void){}
 
@@ -30,6 +31,7 @@ void cBicho::GetPosition(int *posx,int *posy)
 	*posx = x;
 	*posy = y;
 }
+
 void cBicho::SetTile(int tx,int ty)
 {
 	x = tx * TILE_SIZE;
@@ -69,7 +71,7 @@ bool cBicho::CollidesMapWall(int *map,bool right)
 	
 	for(j=0;j<height_tiles;j++)
 	{
-		if(map[ tile_x + ((tile_y+j)*SCENE_WIDTH) ] != 0)	return true;
+		if(map[ tile_x + ((tile_y+j)*SCENE_WIDTH) ] != -1)	return true;
 	}
 	
 	return false;
@@ -94,12 +96,12 @@ bool cBicho::CollidesMapFloor(int *map)
 	{
 		if( (y % TILE_SIZE) == 0 )
 		{
-			if(map[ (tile_x + i) + ((tile_y - 1) * SCENE_WIDTH) ] != 0)
+			if(map[ (tile_x + i) + ((tile_y - 1) * SCENE_WIDTH) ] != -1)
 				on_base = true;
 		}
 		else
 		{
-			if(map[ (tile_x + i) + (tile_y * SCENE_WIDTH) ] != 0)
+			if(map[ (tile_x + i) + (tile_y * SCENE_WIDTH) ] != -1)
 			{
 				y = (tile_y + 1) * TILE_SIZE;
 				on_base = true;
@@ -326,4 +328,29 @@ void cBicho::SetState(int s)
 bool cBicho::isFacingRight()
 {
 	return facingRight;
+}
+
+void cBicho::getAABB(int *minX, int *minY, int *maxX, int *maxY)
+{
+	*minX = x;
+	*minY = y;
+	*maxX = x + w;
+	*maxY = y + h;
+}
+
+bool cBicho::collidesWith(AABB other)
+{
+	if (x + w < other.minX || x > other.maxX) return false;
+	if (y + h < other.minY || y > other.maxY) return false;
+	return true;
+}
+
+void cBicho::die()
+{
+	alive = false;
+}
+
+bool cBicho::isAlive()
+{
+	return alive;
 }

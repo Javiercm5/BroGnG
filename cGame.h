@@ -12,6 +12,8 @@
 
 #define MAX_PROJECTILES 30
 #define PROJECTILES_DELAY 15
+
+
 class cGame
 {
 public:
