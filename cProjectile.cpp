@@ -14,20 +14,23 @@ cProjectile::cProjectile()
 
 cProjectile::~cProjectile(){}
 
-void cProjectile::shoot(bool shootRight, int xo, int yo, int type)	
+void cProjectile::shoot(bool shootRight, int xo, int yo, int type, bool enemy)	
 {
 	facingRight = shootRight;
 	posX = xo;
 	posY = yo;
 	alive = true;
+	isFromEnemy = enemy;
 	
 	switch (type){
 		case TYPE_SPEAR: 
-			w = 30; h = 8; speed = 3;  damage = 1; break;
+			w = 36; h = 12; speed = 3;  damage = 1; break;
 		case TYPE_FIREBALL:
 			w = 16; h = 16; speed = 2; damage = 2;
 			FRAME_DELAY = 20;
 			break;
+		case TYPE_AXE:
+			w = 23; h = 23; speed = 3; damage = 1; FRAME_DELAY = 3; break;
 	}
 	
 	projectileType = type;
@@ -52,7 +55,7 @@ void cProjectile::logic(int *map)
 	}
 
 
-
+	/*
 	//////////////
 	if ((posX % TILE_SIZE) == 0){
 		xaux = posX;
@@ -64,7 +67,7 @@ void cProjectile::logic(int *map)
 		//impactar enemic ese if ...
 	}
 	else (facingRight ? posX += speed : posX -= speed);
-
+	*/
 
 }
 
@@ -81,6 +84,8 @@ bool cProjectile::CollidesMapWall(int *map, bool right)
 	height_tiles = h / TILE_SIZE;
 
 	if (right)	tile_x += width_tiles;
+
+	if (height_tiles == 0) if (map[tile_x + ((tile_y)*SCENE_WIDTH)] != -1)	return true;
 
 	for (j = 0; j<height_tiles; j++)
 	{
@@ -102,12 +107,18 @@ void cProjectile::draw(int tex_id)
 
 	switch (projectileType){
 		case TYPE_SPEAR:
-			yo = upp *(facingRight ? 8.0f : 16.0f);
+			xo = upp *(facingRight ? 0.0f : 36.0f);
+			yo = 12.0f * upp;
 			break;
 		case TYPE_FIREBALL:
 			yo = upp * 32.0f;
 			xo = 0.0f + (GetFrame()*(upp*16.0f));
 			NextFrame(3);
+			break;
+		case TYPE_AXE:
+			yo = upp * 69.0f;
+			xo = 0.0f + (GetFrame()*(upp*23.0f));
+			NextFrame(8);
 			break;
 	}
 	
@@ -171,4 +182,16 @@ int cProjectile::GetDamage()
 int cProjectile::GetType()
 {
 	return projectileType;
+}
+
+bool cProjectile::isEnemy()
+{
+	return isFromEnemy;
+}
+
+bool cProjectile::collideWith(AABB other)
+{
+	if (posX + w < other.minX || posX > other.maxX) return false;
+	if (posY + h < other.minY || posY > other.maxY) return false;
+	return true;
 }

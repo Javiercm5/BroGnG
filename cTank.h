@@ -1,5 +1,8 @@
 #pragma once
 #include "cBicho.h"
+
+#define PROJECTILES_TANK_DELAY		30
+
 class cTank :
 	public cBicho
 {

@@ -136,20 +136,28 @@ bool cBicho::CollidesMapCeiling(int *map)
 {
 	int tile_x, tile_y;
 	int width_tiles;
+	int heigh_tiles;
 	bool ceiling;
-	int i;
+	int i, j;
 
 	tile_x = x / TILE_SIZE;
 	tile_y = y / TILE_SIZE;
 
 	width_tiles = w / TILE_SIZE;
+	heigh_tiles = h / TILE_SIZE;
+
 	if ((x % TILE_SIZE) != 0) width_tiles++;
+	if ((y % TILE_SIZE) != 0) heigh_tiles++;
 
 	ceiling = false;
 	i = 0;
-	while ((i<width_tiles) && !ceiling)
+	while ((i<heigh_tiles) && !ceiling)
 	{	
-		if (map[(tile_x + i) + ((tile_y + 1) * SCENE_WIDTH)] != -1)	ceiling = true;
+		j = 0;
+		while ((j < width_tiles) && !ceiling){
+			if (map[(tile_x + j)+((tile_y + i) * SCENE_WIDTH)] != -1)	ceiling = true;
+			j++;
+		}
 		i++;
 	}
 	return ceiling;

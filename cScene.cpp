@@ -51,6 +51,10 @@ bool cScene::LoadLevel(int level)
 						map[(j*SCENE_WIDTH)+i]=-1;
 						if (level == 1){
 							xo = tileRate;
+							yo = 2*tileRate;
+						}
+						else if (level == 2){
+							xo = tileRate;
 							yo = tileRate;
 						}
 
@@ -58,7 +62,7 @@ bool cScene::LoadLevel(int level)
 
 					else {
 						int iTile = tile - 48;
-						if (iTile == 8 || iTile == 9) map[(j*SCENE_WIDTH) + i] = -1;
+						if (iTile == 8 || iTile == 9 || iTile == 3) map[(j*SCENE_WIDTH) + i] = -1;
 						else map[(j*SCENE_WIDTH) + i] = iTile;
 
 						xo = (iTile % 4) * tileRate;
@@ -77,6 +81,26 @@ bool cScene::LoadLevel(int level)
 				fscanf(fd,"%c",&tile); //pass enter
 
 			}
+			/* CURBES
+			for (int j = SCENE_HEIGHT - 2; j >= 0; j--){
+				px = SCENE_Xo;
+				py = SCENE_Yo + (j*TILE_SIZE);
+
+				for (int i = 0; i < SCENE_WIDTH; i++){
+					if (map[((j + 1)*SCENE_WIDTH) + i] == -1 && map[(j*SCENE_WIDTH) + i] != -1){
+						(level == 2 ? yo = tileRate : yo = 2.0f * tileRate);
+						xo = 2.0f * tileRate;
+
+						glTexCoord2f(xo, yo);							glVertex3i(px, py, 0);
+						glTexCoord2f(xo + tileRate, yo);				glVertex3i(px + BLOCK_SIZE, py, 0);
+						glTexCoord2f(xo + tileRate, yo - tileRate);		glVertex3i(px + BLOCK_SIZE, py + BLOCK_SIZE, 0);
+						glTexCoord2f(xo, yo - tileRate);				glVertex3i(px, py + BLOCK_SIZE, 0);
+						px += TILE_SIZE;
+
+					}
+				}
+			}
+			*/
 
 		glEnd();
 	glEndList();

@@ -4,6 +4,7 @@
 
 cGame::cGame(void)
 {
+
 }
 
 cGame::~cGame(void)
@@ -26,11 +27,18 @@ bool cGame::Init()
 	glAlphaFunc(GL_GREATER, 0.05f);
 	glEnable(GL_ALPHA_TEST);
 
-	level = 1;
+	levelZombies = MAX_ZOMBIES;
+	levelTanks = MAX_TANKS;
+
+	level = 2;
 	//Scene initialization
 	res = Data.LoadImage(IMG_BLOCKS,"tileset.png",GL_RGBA);
 	if(!res) return false;
 
+	res = Data.LoadImage(IMG_PARALLAX, "parallaxsheet.png", GL_RGBA);
+	if (!res) return false;
+
+	
 	res = Data.LoadImage(IMG_MISC, "tilesheetMisc.png", GL_RGBA);
 	if (!res) return false;
 
@@ -91,12 +99,13 @@ bool cGame::Process()
 	//--GAME LOGIC
 
 	Player.Update(*this);
-	Tank.Update(*this);
-	
-	for (int i = 0; i < MAX_ZOMBIES; ++i){
-		zombies[i].Update(*this);
+		
+	for (int i = 0; i < levelZombies; ++i){
+		if(zombies[i].isAlive()) zombies[i].Update(*this);
 	}
-
+	for (int i = 0; i < levelTanks; ++i){
+		if (tanks[i].isAlive()) tanks[i].Update(*this);
+	}
 
 	ProjectilesLogic();
 	
@@ -114,18 +123,22 @@ void cGame::Render()
 	glLoadIdentity();
 
 	Scene.Draw(Data.GetID(IMG_BLOCKS));
+	
+	if(Player.isAlive()) Player.Draw(Data.GetID(IMG_PLAYER));
 
-	Player.Draw(Data.GetID(IMG_PLAYER));
-	for (int i = 0; i < MAX_ZOMBIES; ++i){
+
+	for (int i = 0; i < levelZombies; ++i){
 		if (zombies[i].isAlive()) zombies[i].Draw(Data.GetID(IMG_PLAYER));
 	}
+
+	for (int i = 0; i < levelTanks; ++i){
+		if (tanks[i].isAlive()) tanks[i].Draw(Data.GetID(IMG_PLAYER));
+	}
 	
-
-	if (Tank.isAlive()) Tank.Draw(Data.GetID(IMG_PLAYER));
-
 	for (int i = 0; i < MAX_PROJECTILES; ++i) {
 		if (Bullets[i].isAlive()) Bullets[i].draw(Data.GetID(IMG_MISC));
 	}
+
 
 	glutSwapBuffers();
 }
@@ -169,11 +182,11 @@ void cGame::CameraUpdate(int px, int py)
 
 
 
-void cGame::addProjectile(bool right, int x, int y, int type)
+void cGame::addProjectile(bool right, int x, int y, int type, bool enemy)
 {
 	for (int i = 0; i < MAX_PROJECTILES; ++i){
 		if (!Bullets[i].isAlive()){
-			Bullets[i].shoot(right, x, y, type);
+			Bullets[i].shoot(right, x, y, type, enemy);
 			break;
 		}
 	}
@@ -182,22 +195,45 @@ void cGame::addProjectile(bool right, int x, int y, int type)
 void cGame::ProjectilesLogic()
 {
 	for (int i = 0; i < MAX_PROJECTILES; ++i){
+		
 		if (Bullets[i].isAlive()) {
-			for (int i = 0; i < MAX_ZOMBIES; ++i){
-				if (zombies[i].isAlive() && zombies[i].collidesWith(Bullets[i].getAABB()) && Bullets[i].GetType() != TYPE_FIREBALL){
-					zombies[i].impact(Bullets[i].GetDamage());
+			
+		Bullets[i].logic(Scene.GetMap());
+
+			if (Bullets[i].isEnemy()){
+				if (Player.isAlive() && Player.collidesWith(Bullets[i].getAABB())){
+					Player.impact(Bullets[i].GetDamage());
 					Bullets[i].impact();
 				}
 			}
-			
-			if (Player.isAlive() && Player.collidesWith(Bullets[i].getAABB()) && Bullets[i].GetType() != TYPE_SPEAR){
-				Player.impact(Bullets[i].GetDamage());
-				Bullets[i].impact();
+			else{
+				for (int j = 0; j < levelZombies; ++j){
+ 					if (zombies[j].isAlive() && zombies[j].collidesWith(Bullets[i].getAABB())){
+ 						zombies[j].impact(Bullets[i].GetDamage());
+						Bullets[i].impact();
+					}
+				}
+				for (int j = 0; j < levelTanks; ++j){
+					if (tanks[j].isAlive() && tanks[j].collidesWith(Bullets[i].getAABB())){
+						tanks[j].impact(Bullets[i].GetDamage());
+						Bullets[i].impact();
+					}
+				}
+
+				//per tots els tanks
+				
+				for (int j = 0; j < MAX_PROJECTILES; ++j){
+					if (Bullets[i].isAlive() && Bullets[j].isAlive() && Bullets[j].isEnemy() && Bullets[j].collideWith(Bullets[i].getAABB()) ){
+						Bullets[j].impact();
+						Bullets[i].impact();
+					}
+				}
 			}
+
 			
-			else Bullets[i].logic(Scene.GetMap());
 		}
 	}
+
 }
 
 cScene cGame::getScene()
@@ -210,104 +246,78 @@ cPlayer cGame::getPlayer(int nPlayer)
 	return Player;
 }
 
+
+struct position{
+	int x, y;
+};
+
 void cGame::levelInits(int lvl)
 {
 	if (lvl == 1){
-			Player.SetWidthHeight(36, 40);
-			Player.SetTile(4, 25);
-			Player.SetWidthHeight(36, 40);
-			Player.SetState(STATE_LOOK);
-			Player.SetDirection(1);
+		levelZombies = 15;
+		levelTanks = 3;
+		int ZpositionsX[15] = { 10, 15, 4, 10, 15, 47, 53, 56, 72, 77, 80, 49, 55, 60, 65};
+		int ZpositionsY[15] = { 19, 19, 14, 2, 2, 16, 23, 23, 20, 20, 14, 2, 2, 2, 2};
+
+		int TPositionsX[3] = {6, 35, 86};
+		int TPositionsY[3] = {4, 21, 26};
+
+		Player.SetWidthHeight(36, 40);
+		Player.SetTile(4, 25);
+		Player.SetWidthHeight(36, 40);
+		Player.SetState(STATE_LOOK);
+		Player.SetDirection(1);
 
 
 			//Enemies inicialitzations
-			for (int i = 0; i < 14; ++i){
-				zombies[i].SetWidthHeight(36, 40);
-			}
-
-			for (int i = 14; i < MAX_ZOMBIES; ++i){
-				zombies[i].die();
-			}
-
-			zombies[0].SetTile(10, 19);
-			zombies[0].SetWidthHeight(36, 40);
-			zombies[0].SetState(STATE_WALK);
-			zombies[0].SetDirection(1);
-
-			zombies[1].SetTile(15, 19);
-			zombies[1].SetWidthHeight(36, 40);
-			zombies[1].SetState(STATE_WALK);
-			zombies[1].SetDirection(1);
-
-			zombies[2].SetTile(8, 14);
-			zombies[2].SetWidthHeight(36, 40);
-			zombies[2].SetState(STATE_WALK);
-			zombies[2].SetDirection(1);
-
-			zombies[3].SetTile(47, 23);
-			zombies[3].SetWidthHeight(36, 40);
-			zombies[3].SetState(STATE_WALK);
-			zombies[3].SetDirection(1);
-
-			zombies[4].SetTile(15, 4);
-			zombies[4].SetWidthHeight(36, 40);
-			zombies[4].SetState(STATE_WALK);
-			zombies[4].SetDirection(1);
-
-			zombies[5].SetTile(50, 18);
-			zombies[5].SetWidthHeight(36, 40);
-			zombies[6].SetState(STATE_WALK);
-			zombies[6].SetDirection(1);
-
-			zombies[7].SetTile(54, 23);
-			zombies[7].SetWidthHeight(36, 40);
-			zombies[7].SetState(STATE_WALK);
-			zombies[7].SetDirection(1);
-
-			//zombies[8].SetTile(, );
-			zombies[8].SetWidthHeight(36, 40);
-			zombies[8].SetState(STATE_WALK);
-			zombies[8].SetDirection(1);
-
-			//zombies[9].SetTile(, );
-			zombies[9].SetWidthHeight(36, 40);
-			zombies[9].SetState(STATE_WALK);
-			zombies[9].SetDirection(1);
-
-			//zombies[10].SetTile(, );
-			zombies[10].SetWidthHeight(36, 40);
-			zombies[10].SetState(STATE_WALK);
-			zombies[10].SetDirection(1);
-
-			//	zombies[11].SetTile(, );
-			zombies[11].SetWidthHeight(36, 40);
-			zombies[11].SetState(STATE_WALK);
-			zombies[11].SetDirection(1);
-
-			//zombies[12].SetTile(, );
-			zombies[12].SetWidthHeight(36, 40);
-			zombies[12].SetState(STATE_WALK);
-			zombies[12].SetDirection(1);
-
-			//zombies[13].SetTile(, );
-			zombies[13].SetWidthHeight(36, 40);
-			zombies[13].SetState(STATE_WALK);
-			zombies[13].SetDirection(1);
-
-			//zombies[13].SetTile(, );
-			zombies[13].SetWidthHeight(36, 40);
-			zombies[13].SetState(STATE_WALK);
-			zombies[13].SetDirection(1);
-
-
-
-			Tank.SetWidthHeight(64, 64);
-			Tank.SetTile(6, 4);
-			Tank.SetWidthHeight(64, 64);
-			Tank.SetState(STATE_WALK);
-			Tank.SetDirection(1);
+		for (int i = 0; i < levelZombies; ++i){
+			zombies[i].SetWidthHeight(36, 40);
+			zombies[i].SetTile(ZpositionsX[i], ZpositionsY[i]);
+			zombies[i].SetWidthHeight(36, 40);
+			zombies[i].SetState(STATE_WALK);
+			zombies[i].SetDirection(1);
 		}
-	
+		for (int i = 0; i < levelTanks; ++i){
+			tanks[i].SetWidthHeight(64, 64);
+			tanks[i].SetTile(TPositionsX[i], TPositionsY[i]);
+			tanks[i].SetWidthHeight(64, 64);
+			tanks[i].SetState(STATE_WALK);
+			tanks[i].SetDirection(1);
+		}
+	}
+
+	if (lvl == 2){
+		levelZombies = 20;
+		levelTanks = 4;
+		int ZpositionsX[20] = { 9, 24, 37, 49, 60, 75, 88, 82, 81, 83, 60, 57, 25, 32, 30, 28, 54, 42, 15, 80 };
+		int ZpositionsY[20] = { 2, 2, 2, 2, 2, 2, 2, 9, 15, 21, 21, 15, 9, 9, 15, 15, 2, 2, 2, 2 };
+
+		int TPositionsX[4] = { 89, 30, 64, 30 };
+		int TPositionsY[4] = { 26, 26,  9, 15};
+
+		Player.SetWidthHeight(36, 40);
+		Player.SetTile(2, 2);
+		Player.SetWidthHeight(36, 40);
+		Player.SetState(STATE_LOOK);
+		Player.SetDirection(1);
+
+
+		//Enemies inicialitzations
+		for (int i = 0; i < levelZombies; ++i){
+			zombies[i].SetWidthHeight(36, 40);
+			zombies[i].SetTile(ZpositionsX[i], ZpositionsY[i]);
+			zombies[i].SetWidthHeight(36, 40);
+			zombies[i].SetState(STATE_WALK);
+			zombies[i].SetDirection(1);
+		}
+		for (int i = 0; i < levelTanks; ++i){
+			tanks[i].SetWidthHeight(64, 64);
+			tanks[i].SetTile(TPositionsX[i], TPositionsY[i]);
+			tanks[i].SetWidthHeight(64, 64);
+			tanks[i].SetState(STATE_WALK);
+			tanks[i].SetDirection(1);
+		}
+	}
 }
 
 

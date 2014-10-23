@@ -12,9 +12,8 @@
 #define GAME_HEIGHT 240
 
 #define MAX_PROJECTILES 30
-#define PROJECTILES_PLAYER_DELAY	15
-#define PROJECTILES_TANK_DELAY		30
-#define MAX_ZOMBIES					50
+#define MAX_ZOMBIES		50
+#define MAX_TANKS		15
 
 
 class cGame
@@ -35,7 +34,7 @@ public:
 	//Output
 	void Render();
 	cScene getScene();
-	void addProjectile(bool right, int x, int y, int type);
+	void addProjectile(bool right, int x, int y, int type, bool enemy);
 	cPlayer getPlayer(int nPlayer);
 
 private:
@@ -44,17 +43,18 @@ private:
 	cScene Scene;
 	cPlayer Player;
 	cData Data;
-	cTank Tank;
 	cProjectile Bullets[MAX_PROJECTILES];
 	
 	cZombie zombies[MAX_ZOMBIES];
-	cTank tanks[10];
+	cTank tanks[MAX_TANKS];
 
-	int bulletsDelay = PROJECTILES_PLAYER_DELAY;
-	int fireballsDelay = PROJECTILES_TANK_DELAY;
+	int levelZombies;
+	int levelTanks;
 	int cameraX, cameraY;
+
 	//int GAME_WIDTH = 640;
 	//int GAME_HEIGHT = 480;
+
 	void CameraUpdate(int px, int py);
 	void EnemiesLogic(int px, int py);
 	void ProjectilesLogic();

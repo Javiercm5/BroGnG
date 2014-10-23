@@ -65,8 +65,8 @@ void cPlayer::Update(cGame& g)
 	Logic(g.getScene().GetMap());
 
 	if (shootDelay == bichoDelay){
-		if(facingRight) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR);
-		else g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR);
+		if (facingRight) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR, false);
+		else g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR, false);
 	}
 	if (shootDelay > 0) --shootDelay;
 }

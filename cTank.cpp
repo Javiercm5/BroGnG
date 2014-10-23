@@ -69,6 +69,6 @@ void cTank::Update(cGame& g)
 	intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());
 	Logic(g.getScene().GetMap());
 		
-	if (shootDelay == bichoDelay) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL);
+	if (shootDelay == bichoDelay) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);
 	if (shootDelay > 0) --shootDelay;
 }
