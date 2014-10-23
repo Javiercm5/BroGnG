@@ -11,9 +11,11 @@ cBicho::cBicho(void)
 	crouching = false;
 	facingRight = true;
 	alive = true;
+	health = 2;
+	shootDelay = 0;
+	bichoDelay = 15;
 }
 cBicho::~cBicho(void){}
-
 cBicho::cBicho(int posx,int posy,int width,int height)
 {
 	x = posx;
@@ -21,6 +23,8 @@ cBicho::cBicho(int posx,int posy,int width,int height)
 	w = width;
 	h = height;
 }
+
+
 void cBicho::SetPosition(int posx,int posy)
 {
 	x = posx;
@@ -30,6 +34,18 @@ void cBicho::GetPosition(int *posx,int *posy)
 {
 	*posx = x;
 	*posy = y;
+}
+void cBicho::SetDirection(int r)
+{
+	facingRight = r;
+}
+int cBicho::GetPositionX()
+{
+	return x;
+}
+int cBicho::GetPositionY()
+{
+	return y;
 }
 
 void cBicho::SetTile(int tx,int ty)
@@ -42,6 +58,8 @@ void cBicho::GetTile(int *tx,int *ty)
 	*tx = x / TILE_SIZE;
 	*ty = y / TILE_SIZE;
 }
+
+
 void cBicho::SetWidthHeight(int width,int height)
 {
 	w = width;
@@ -52,6 +70,10 @@ void cBicho::GetWidthHeight(int *width,int *height)
 	*width = w;
 	*height = h;
 }
+
+
+
+//=======================================COLLISION CONTROL
 bool cBicho::Collides(cRect *rc)
 {
 	return ((x>rc->left) && (x+w<rc->right) && (y>rc->bottom) && (y+h<rc->top));
@@ -76,7 +98,6 @@ bool cBicho::CollidesMapWall(int *map,bool right)
 	
 	return false;
 }
-
 bool cBicho::CollidesMapFloor(int *map)
 {
 	int tile_x,tile_y;
@@ -111,6 +132,88 @@ bool cBicho::CollidesMapFloor(int *map)
 	}
 	return on_base;
 }
+bool cBicho::CollidesMapCeiling(int *map)
+{
+	int tile_x, tile_y;
+	int width_tiles;
+	bool ceiling;
+	int i;
+
+	tile_x = x / TILE_SIZE;
+	tile_y = y / TILE_SIZE;
+
+	width_tiles = w / TILE_SIZE;
+	if ((x % TILE_SIZE) != 0) width_tiles++;
+
+	ceiling = false;
+	i = 0;
+	while ((i<width_tiles) && !ceiling)
+	{	
+		if (map[(tile_x + i) + ((tile_y + 1) * SCENE_WIDTH)] != -1)	ceiling = true;
+		i++;
+	}
+	return ceiling;
+}
+bool cBicho::canGoForward(bool right, int *map)
+{
+	int xaux;
+
+	//Whats next tile?
+	if ((x % TILE_SIZE) == 0)
+	{
+		xaux = x;
+		(right ? x += STEP_LENGTH : x -= STEP_LENGTH);
+
+		if (CollidesMapWall(map, right))
+		{
+			x = xaux;
+			return false;
+		}
+		else{
+			int yaux = y;
+			y -= 30;
+			if (!CollidesMapWall(map, right))
+			{
+				x = xaux;
+				y = yaux;
+				return false;
+			}
+			y = yaux;
+			x = xaux;
+			return true;
+		}
+	}
+	return true;
+}
+
+void cBicho::getAABB(int *minX, int *minY, int *maxX, int *maxY)
+{
+	*minX = x;
+	*minY = y;
+	*maxX = x + w;
+	*maxY = y + h;
+}
+bool cBicho::collidesWith(AABB other)
+{
+	if (x + w < other.minX || x > other.maxX) return false;
+	if (y + h < other.minY || y > other.maxY) return false;
+	return true;
+}
+
+void cBicho::die()
+{
+	alive = false;
+}
+bool cBicho::isAlive()
+{
+	return alive;
+}
+void cBicho::impact(int damage)
+{
+	health-= damage;
+	if (health <= 0) die();
+}
+
 
 void cBicho::GetArea(cRect *rc)
 {
@@ -119,6 +222,7 @@ void cBicho::GetArea(cRect *rc)
 	rc->bottom = y;
 	rc->top    = y+h;
 }
+
 void cBicho::DrawRect(int tex_id,float xo,float yo,float xf,float yf)
 {
 	int screen_x,screen_y;
@@ -139,6 +243,7 @@ void cBicho::DrawRect(int tex_id,float xo,float yo,float xf,float yf)
 	glDisable(GL_TEXTURE_2D);
 }
 
+//============LOGIC / MOVEMENTS
 void cBicho::MoveLeft(int *map)
 {
 	int xaux;
@@ -168,30 +273,6 @@ void cBicho::MoveLeft(int *map)
 		}
 	}
 }
-
-bool cBicho::canGoForward(bool right, int *map)
-{
-	int xaux;
-
-	//Whats next tile?
-	if ((x % TILE_SIZE) == 0)
-	{
-		xaux = x;
-		(right ? x += STEP_LENGTH : x -= STEP_LENGTH);
-
-		if (CollidesMapWall(map, right))
-		{
-			x = xaux;
-			return false;
-		}
-		else{
-			x = xaux;
-			return true;
-		}
-	}
-	return true;
-}
-
 void cBicho::MoveRight(int *map)
 {
 	int xaux;
@@ -244,11 +325,24 @@ void cBicho::Jump(int *map)
 		}
 	}
 }
+void cBicho::crouch()
+{
+	crouching = true;
+}
+void cBicho::shoot()
+{
+	if (shootDelay == 0) {
+		SetState(STATE_SHOOT);
+		shootDelay = bichoDelay;
+	}
+}
+
 void cBicho::Logic(int *map)
 {
 	float alfa;
 	falling = false;	//REVISAR
-	if(jumping)
+	if (CollidesMapCeiling(map)) jumping = false;
+	if (jumping)
 	{
 		jump_alfa += JUMP_STEP;
 		
@@ -282,23 +376,6 @@ void cBicho::Logic(int *map)
 }
 
 
-void cBicho::crouch()
-{
-	crouching = true;
-}
-
-void cBicho::shoot()
-{
-	SetState(STATE_SHOOT);
-
-}
-
-void cBicho::SetDirection(int r)
-{
-	facingRight = r;
-}
-
-
 void cBicho::NextFrame(int max)
 {
 	delay++;
@@ -316,6 +393,7 @@ int cBicho::GetFrame()
 {
 	return seq;
 }
+
 int cBicho::GetState()
 {
 	return state;
@@ -330,27 +408,8 @@ bool cBicho::isFacingRight()
 	return facingRight;
 }
 
-void cBicho::getAABB(int *minX, int *minY, int *maxX, int *maxY)
-{
-	*minX = x;
-	*minY = y;
-	*maxX = x + w;
-	*maxY = y + h;
-}
 
-bool cBicho::collidesWith(AABB other)
+void cBicho::Update(cGame& g)
 {
-	if (x + w < other.minX || x > other.maxX) return false;
-	if (y + h < other.minY || y > other.maxY) return false;
-	return true;
-}
 
-void cBicho::die()
-{
-	alive = false;
-}
-
-bool cBicho::isAlive()
-{
-	return alive;
 }

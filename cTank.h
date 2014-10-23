@@ -1,17 +1,14 @@
 #pragma once
 #include "cBicho.h"
-
-
-class cZombie :
+class cTank :
 	public cBicho
 {
 public:
-	cZombie();
-	~cZombie();
+	cTank();
+	~cTank();
 	void intelligence(int *map, int playerX, int playerY);
 	void Draw(int tex_id);
 	void Update(cGame& g) override;
-
 
 
 private:

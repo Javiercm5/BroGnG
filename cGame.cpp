@@ -26,32 +26,23 @@ bool cGame::Init()
 	glAlphaFunc(GL_GREATER, 0.05f);
 	glEnable(GL_ALPHA_TEST);
 
+	level = 1;
 	//Scene initialization
 	res = Data.LoadImage(IMG_BLOCKS,"tileset.png",GL_RGBA);
 	if(!res) return false;
+
 	res = Data.LoadImage(IMG_MISC, "tilesheetMisc.png", GL_RGBA);
 	if (!res) return false;
-	res = Scene.LoadLevel(1);
+
+	res = Scene.LoadLevel(level);
 	if(!res) return false;
 
 	//Player initialization
 	res = Data.LoadImage(IMG_PLAYER,"tilesheet.png",GL_RGBA);
 	if(!res) return false;
-	Player.SetWidthHeight(36, 40);
-	Player.SetTile(4, 1);
-	Player.SetWidthHeight(36, 40);
-	Player.SetState(STATE_LOOK);
-	Player.SetDirection(1);
-
 	
+	levelInits(level);
 	
-	//Enemies inicialitzations
-	Enemy.SetWidthHeight(36, 40);
-	Enemy.SetTile(10, 10);
-	Enemy.SetWidthHeight(36, 40);
-	Enemy.SetState(STATE_WALK);
-	Enemy.SetDirection(1);
-
 
 
 	return res;
@@ -99,21 +90,53 @@ bool cGame::Process()
 	
 	//--GAME LOGIC
 
-	//Player logic
-	Player.Logic(Scene.GetMap());
-
-	int px, py;
-	Player.GetPosition(&px, &py);
+	Player.Update(*this);
+	Tank.Update(*this);
 	
+	for (int i = 0; i < MAX_ZOMBIES; ++i){
+		zombies[i].Update(*this);
+	}
+
+
+	ProjectilesLogic();
+	
+	CameraUpdate(Player.GetPositionX(), Player.GetPositionY());
+
+	return res;
+}
+
+//Output
+
+void cGame::Render()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	glLoadIdentity();
+
+	Scene.Draw(Data.GetID(IMG_BLOCKS));
+
+	Player.Draw(Data.GetID(IMG_PLAYER));
+	for (int i = 0; i < MAX_ZOMBIES; ++i){
+		if (zombies[i].isAlive()) zombies[i].Draw(Data.GetID(IMG_PLAYER));
+	}
+	
+
+	if (Tank.isAlive()) Tank.Draw(Data.GetID(IMG_PLAYER));
+
+	for (int i = 0; i < MAX_PROJECTILES; ++i) {
+		if (Bullets[i].isAlive()) Bullets[i].draw(Data.GetID(IMG_MISC));
+	}
+
+	glutSwapBuffers();
+}
+
+void cGame::CameraUpdate(int px, int py)
+{
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	//cameraX = px - 1 / 3 * GAME_WIDTH;
-	//cameraY = py - 1/3 * GAME_HEIGHT;
-	
-	
 	int cameraVx = 2;
 	int cameraVy = 2;
-	int factor = 5;
+	int factor = 2;
 	if (Player.GetState() == STATE_WALK){
 		if ((px - cameraX) > (GAME_WIDTH / 3)) cameraVx = factor * 2;
 		else cameraVx = 0;
@@ -128,73 +151,163 @@ bool cGame::Process()
 		else cameraVy = 0;
 	}
 
-	cameraX += 1000/50 * cameraVx;
-	cameraX = min(cameraX, px - 2*GAME_WIDTH / 3);
+	cameraX += 1000 / 50 * cameraVx;
+	cameraX = min(cameraX, px - 2 * GAME_WIDTH / 3);
 	cameraX = max(cameraX, px - GAME_WIDTH / 3);
 	cameraX = max(cameraX, SCENE_Xo);
-	cameraX = min(cameraX, GAME_WIDTH - SCENE_Xo);
+	cameraX = min(cameraX, SCENE_WIDTH*BLOCK_SIZE - SCENE_Xo*BLOCK_SIZE);
 
 	cameraY += 1000 / 50 * cameraVy;
 	cameraY = min(cameraY, py - 2 * GAME_HEIGHT / 3);
 	cameraY = max(cameraY, py - GAME_HEIGHT / 3);
 	cameraY = max(cameraY, SCENE_Yo);
-	cameraY = min(cameraY, GAME_HEIGHT - SCENE_Yo);
-
+	cameraY = min(cameraY, (SCENE_HEIGHT * BLOCK_SIZE - SCENE_Yo*BLOCK_SIZE) - SCENE_Yo);
 
 	glOrtho(cameraX, GAME_WIDTH + cameraX, cameraY, GAME_HEIGHT + cameraY, -1, 3);
-
 	glMatrixMode(GL_MODELVIEW);
-	
+}
 
-	if (bulletsDelay == 0) bulletsDelay = PROJECTILES_DELAY;
-	if (bulletsDelay < PROJECTILES_DELAY)	--bulletsDelay;
 
-	if (Player.GetState() == STATE_SHOOT){
-		for (int i = 0; i < MAX_PROJECTILES; ++i){
-			if (!Bullets[i].isAlive() && bulletsDelay == PROJECTILES_DELAY) {
-				Bullets[i].shoot(Player.isFacingRight(), px, py);
-				--bulletsDelay;
-				break;
-			}
+
+void cGame::addProjectile(bool right, int x, int y, int type)
+{
+	for (int i = 0; i < MAX_PROJECTILES; ++i){
+		if (!Bullets[i].isAlive()){
+			Bullets[i].shoot(right, x, y, type);
+			break;
 		}
 	}
+}
 
-	//Projectiles logic
+void cGame::ProjectilesLogic()
+{
 	for (int i = 0; i < MAX_PROJECTILES; ++i){
 		if (Bullets[i].isAlive()) {
-			if (Enemy.isAlive() && Enemy.collidesWith(Bullets[i].getAABB())){
-				Enemy.die();
+			for (int i = 0; i < MAX_ZOMBIES; ++i){
+				if (zombies[i].isAlive() && zombies[i].collidesWith(Bullets[i].getAABB()) && Bullets[i].GetType() != TYPE_FIREBALL){
+					zombies[i].impact(Bullets[i].GetDamage());
+					Bullets[i].impact();
+				}
+			}
+			
+			if (Player.isAlive() && Player.collidesWith(Bullets[i].getAABB()) && Bullets[i].GetType() != TYPE_SPEAR){
+				Player.impact(Bullets[i].GetDamage());
 				Bullets[i].impact();
 			}
-			Bullets[i].logic(Scene.GetMap());
+			
+			else Bullets[i].logic(Scene.GetMap());
 		}
 	}
-
-
-	//Enemies logic
-	if (Enemy.isAlive()){
-		Enemy.intelligence(Scene.GetMap(), px, py);
-		Enemy.Logic(Scene.GetMap());
-	}
-
-	return res;
 }
 
-//Output
-void cGame::Render()
+cScene cGame::getScene()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	glLoadIdentity();
-
-	Scene.Draw(Data.GetID(IMG_BLOCKS));
-	Player.Draw(Data.GetID(IMG_PLAYER));
-
-	for (int i = 0; i < MAX_PROJECTILES; ++i) {
-		if (Bullets[i].isAlive()) Bullets[i].draw(Data.GetID(IMG_MISC), Player.isFacingRight());
-	}
-
-	if (Enemy.isAlive()) Enemy.Draw(Data.GetID(IMG_PLAYER));
-
-	glutSwapBuffers();
+	return Scene;
 }
+
+cPlayer cGame::getPlayer(int nPlayer)
+{
+	return Player;
+}
+
+void cGame::levelInits(int lvl)
+{
+	if (lvl == 1){
+			Player.SetWidthHeight(36, 40);
+			Player.SetTile(4, 25);
+			Player.SetWidthHeight(36, 40);
+			Player.SetState(STATE_LOOK);
+			Player.SetDirection(1);
+
+
+			//Enemies inicialitzations
+			for (int i = 0; i < 14; ++i){
+				zombies[i].SetWidthHeight(36, 40);
+			}
+
+			for (int i = 14; i < MAX_ZOMBIES; ++i){
+				zombies[i].die();
+			}
+
+			zombies[0].SetTile(10, 19);
+			zombies[0].SetWidthHeight(36, 40);
+			zombies[0].SetState(STATE_WALK);
+			zombies[0].SetDirection(1);
+
+			zombies[1].SetTile(15, 19);
+			zombies[1].SetWidthHeight(36, 40);
+			zombies[1].SetState(STATE_WALK);
+			zombies[1].SetDirection(1);
+
+			zombies[2].SetTile(8, 14);
+			zombies[2].SetWidthHeight(36, 40);
+			zombies[2].SetState(STATE_WALK);
+			zombies[2].SetDirection(1);
+
+			zombies[3].SetTile(47, 23);
+			zombies[3].SetWidthHeight(36, 40);
+			zombies[3].SetState(STATE_WALK);
+			zombies[3].SetDirection(1);
+
+			zombies[4].SetTile(15, 4);
+			zombies[4].SetWidthHeight(36, 40);
+			zombies[4].SetState(STATE_WALK);
+			zombies[4].SetDirection(1);
+
+			zombies[5].SetTile(50, 18);
+			zombies[5].SetWidthHeight(36, 40);
+			zombies[6].SetState(STATE_WALK);
+			zombies[6].SetDirection(1);
+
+			zombies[7].SetTile(54, 23);
+			zombies[7].SetWidthHeight(36, 40);
+			zombies[7].SetState(STATE_WALK);
+			zombies[7].SetDirection(1);
+
+			//zombies[8].SetTile(, );
+			zombies[8].SetWidthHeight(36, 40);
+			zombies[8].SetState(STATE_WALK);
+			zombies[8].SetDirection(1);
+
+			//zombies[9].SetTile(, );
+			zombies[9].SetWidthHeight(36, 40);
+			zombies[9].SetState(STATE_WALK);
+			zombies[9].SetDirection(1);
+
+			//zombies[10].SetTile(, );
+			zombies[10].SetWidthHeight(36, 40);
+			zombies[10].SetState(STATE_WALK);
+			zombies[10].SetDirection(1);
+
+			//	zombies[11].SetTile(, );
+			zombies[11].SetWidthHeight(36, 40);
+			zombies[11].SetState(STATE_WALK);
+			zombies[11].SetDirection(1);
+
+			//zombies[12].SetTile(, );
+			zombies[12].SetWidthHeight(36, 40);
+			zombies[12].SetState(STATE_WALK);
+			zombies[12].SetDirection(1);
+
+			//zombies[13].SetTile(, );
+			zombies[13].SetWidthHeight(36, 40);
+			zombies[13].SetState(STATE_WALK);
+			zombies[13].SetDirection(1);
+
+			//zombies[13].SetTile(, );
+			zombies[13].SetWidthHeight(36, 40);
+			zombies[13].SetState(STATE_WALK);
+			zombies[13].SetDirection(1);
+
+
+
+			Tank.SetWidthHeight(64, 64);
+			Tank.SetTile(6, 4);
+			Tank.SetWidthHeight(64, 64);
+			Tank.SetState(STATE_WALK);
+			Tank.SetDirection(1);
+		}
+	
+}
+
+

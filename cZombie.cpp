@@ -1,16 +1,17 @@
 #include "cZombie.h"
+#include "cGame.h"
 
 cZombie::cZombie()
 {
 	STEP_LENGTH = 1;
 	FRAME_DELAY = 8;
 	alive = true;
+	health = 2;
 }
-
-
 cZombie::~cZombie()
 {
 }
+
 
 void cZombie::intelligence(int *map, int playerX, int playerY)
 {
@@ -32,8 +33,6 @@ void cZombie::intelligence(int *map, int playerX, int playerY)
 	}
 
 	(goRight ? MoveRight(map) : MoveLeft(map));
-
-	//TODO: IF Threshold, SpeedUP enemy
 }
 
 void cZombie::Draw(int tex_id)
@@ -54,3 +53,8 @@ void cZombie::Draw(int tex_id)
 	DrawRect(tex_id, xo, yo, xf, yf);
 }
 
+void cZombie::Update(cGame& g) 
+{
+	intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());
+	Logic(g.getScene().GetMap());
+}

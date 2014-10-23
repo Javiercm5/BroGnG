@@ -32,10 +32,13 @@
     <ClCompile Include="GLUTMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cProjectile.cpp">
+    <ClCompile Include="cZombie.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cZombie.cpp">
+    <ClCompile Include="cTank.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cProjectile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -61,10 +64,13 @@
     <ClInclude Include="Globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cProjectile.h">
+    <ClInclude Include="cZombie.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cZombie.h">
+    <ClInclude Include="cTank.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cProjectile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

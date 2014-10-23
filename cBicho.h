@@ -20,7 +20,7 @@ public:
 		right,bottom;
 };
 
-
+class cGame;
 
 class cBicho
 {
@@ -31,6 +31,8 @@ public:
 
 	void SetPosition(int x,int y);
 	void GetPosition(int *x,int *y);
+	int GetPositionX();
+	int GetPositionY();
 	void SetTile(int tx,int ty);
 	void GetTile(int *tx,int *ty);
 	void SetWidthHeight(int w,int h);
@@ -39,6 +41,8 @@ public:
 	bool Collides(cRect *rc);
 	bool CollidesMapWall(int *map,bool right);
 	bool CollidesMapFloor(int *map);
+	bool CollidesMapCeiling(int *map);
+
 	void GetArea(cRect *rc);
 	void DrawRect(int tex_id,float xo,float yo,float xf,float yf);
 
@@ -63,8 +67,11 @@ public:
 
 	bool collidesWith(AABB other);
 	void die();
+	virtual void impact(int damage);
 	bool isAlive();
 
+
+	virtual void Update(cGame& g);
 	
 private:
 	int x,y;
@@ -76,15 +83,21 @@ private:
 
 	int seq,delay;
 
-	int alive;
 
 protected:
 	bool facingRight;
 	bool jumping;
 	bool falling;
 	bool crouching;
+
 	bool canGoForward(bool goRight, int *map);
+	
 	int STEP_LENGTH = 2;
 	int FRAME_DELAY = 4;
+	
+	int health;
+	int alive;
+	int shootDelay, bichoDelay;
+
 
 };

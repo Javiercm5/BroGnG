@@ -1,8 +1,15 @@
 
 #include "cPlayer.h"
+#include "cGame.h"
+#include "iostream"
 
-cPlayer::cPlayer() {}
-cPlayer::~cPlayer(){}
+cPlayer::cPlayer() 
+{
+	bichoDelay = 15;
+	shootDelay = 0;
+}
+cPlayer::~cPlayer()
+{}
 
 void cPlayer::Draw(int tex_id)
 {	
@@ -45,4 +52,21 @@ void cPlayer::Draw(int tex_id)
 	yf = yo - upp * 40.0f;
 
 	DrawRect(tex_id,xo,yo,xf,yf);
+}
+
+void cPlayer::impact(int damage) {
+	health -= damage;
+	//godmode 3 sec
+}
+
+
+void cPlayer::Update(cGame& g)
+{
+	Logic(g.getScene().GetMap());
+
+	if (shootDelay == bichoDelay){
+		if(facingRight) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR);
+		else g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR);
+	}
+	if (shootDelay > 0) --shootDelay;
 }

@@ -4,7 +4,7 @@
 
 #define SCENE_Xo		(2*TILE_SIZE)
 #define SCENE_Yo		TILE_SIZE
-#define SCENE_WIDTH		128
+#define SCENE_WIDTH		96
 #define SCENE_HEIGHT	32
 
 #define FILENAME		"level"
