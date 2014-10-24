@@ -91,6 +91,7 @@
   <ItemGroup>
     <ClCompile Include="cBicho.cpp" />
     <ClCompile Include="cData.cpp" />
+    <ClCompile Include="cDemon.cpp" />
     <ClCompile Include="cTank.cpp" />
     <ClCompile Include="cZombie.cpp" />
     <ClCompile Include="cGame.cpp" />
@@ -103,6 +104,7 @@
   <ItemGroup>
     <ClInclude Include="cBicho.h" />
     <ClInclude Include="cData.h" />
+    <ClInclude Include="cDemon.h" />
     <ClInclude Include="cTank.h" />
     <ClInclude Include="cZombie.h" />
     <ClInclude Include="cGame.h" />

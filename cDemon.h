@@ -1,21 +1,17 @@
 #pragma once
 #include "cBicho.h"
-
-#define PROJECTILES_TANK_DELAY		30
-
-class cTank :
+class cDemon :
 	public cBicho
 {
 public:
-	cTank();
-	~cTank();
+	cDemon();
+	~cDemon();
 	void intelligence(int *map, int playerX, int playerY);
 	void Draw(int tex_id);
 	void Update(cGame& g) override;
 
-
-
-private:
+private: 	
 	bool goRight;
+
 };
 

@@ -7,6 +7,7 @@ cZombie::cZombie()
 	FRAME_DELAY = 8;
 	alive = true;
 	health = 2;
+	damage = 1;
 }
 cZombie::~cZombie()
 {
@@ -37,29 +38,27 @@ void cZombie::intelligence(int *map, int playerX, int playerY)
 
 void cZombie::Draw(int tex_id)
 {
-	float xo, yo, xf, yf;
-	float upp = 1.0f / 1024.0f;	//Units Per Pixel
 
-	yo = upp * (facingRight ? 120.0f : 160.0f);
-	if (dying){
-		xo = -upp * 36.0f + (GetFrame()*(upp*36.0f));
-		NextFrame(2);
-	}
-	else{
+	if (!dying || (glutGet(GLUT_ELAPSED_TIME) / 300) % 2){
+
+		float xo, yo, xf, yf;
+		float upp = 1.0f / 1024.0f;	//Units Per Pixel
+
+		yo = upp * (facingRight ? 120.0f : 160.0f);
 		switch (GetState())
 		{
 		case STATE_LOOK:	xo = 0.0f; break;
 		case STATE_WALK:	xo = 0.0f + (GetFrame()*(upp*36.0f));
 			NextFrame(4); break;
 		}
-	}
-	xf = xo + upp * 36.0f;
-	yf = yo - upp * 40.0f;
+		xf = xo + upp * 36.0f;
+		yf = yo - upp * 40.0f;
 
-	DrawRect(tex_id, xo, yo, xf, yf);
+		DrawRect(tex_id, xo, yo, xf, yf);
+	}
 }
 
-void cZombie::Update(cGame& g) 
+void cZombie::Update(cGame& g)
 {
 	if (dyingDelay > 0){
 		dyingDelay--;
@@ -68,6 +67,6 @@ void cZombie::Update(cGame& g)
 		alive = false;
 	}
 	else intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());
-	
+
 	Logic(g.getScene().GetMap());
 }

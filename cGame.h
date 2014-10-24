@@ -36,6 +36,8 @@ public:
 	cScene getScene();
 	void addProjectile(bool right, int x, int y, int type, bool enemy);
 	cPlayer getPlayer(int nPlayer);
+	void gameOver();
+
 
 private:
 	unsigned char keys[256];
@@ -44,7 +46,7 @@ private:
 	cPlayer Player;
 	cData Data;
 	cProjectile Bullets[MAX_PROJECTILES];
-	
+
 	cZombie zombies[MAX_ZOMBIES];
 	cTank tanks[MAX_TANKS];
 
@@ -52,13 +54,17 @@ private:
 	int levelTanks;
 	int cameraX, cameraY;
 
+	int player1Score;
+
 	//int GAME_WIDTH = 640;
 	//int GAME_HEIGHT = 480;
 
 	void CameraUpdate(int px, int py);
 	void EnemiesLogic(int px, int py);
 	void ProjectilesLogic();
-
+	void collisionsLogic();
 	void levelInits(int lvl);
+	void render_string(void* font, const char* string);
+	bool gameEnd;
 
 };

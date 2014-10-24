@@ -7,7 +7,7 @@
 #define PROJECTILES_PLAYER_DELAY	15
 
 
-class cPlayer: public cBicho
+class cPlayer : public cBicho
 {
 public:
 	cPlayer();
@@ -19,5 +19,8 @@ public:
 
 private:
 	int bulletsDelay = PROJECTILES_PLAYER_DELAY;
+	bool godMode;
+	int invulnerableDelay;
+	bool isGod();
 
 };
