@@ -65,8 +65,15 @@ void cTank::Draw(int tex_id)
 
 void cTank::Update(cGame& g)
 {
-
-	intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());
+	if (dyingDelay > 0){
+		dyingDelay--;
+	}
+	else if (dyingDelay == 0 && dying){
+		alive = false;
+	}
+	else 	intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());
+	
+	
 	Logic(g.getScene().GetMap());
 		
 	if (shootDelay == bichoDelay) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);

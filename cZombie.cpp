@@ -41,11 +41,17 @@ void cZombie::Draw(int tex_id)
 	float upp = 1.0f / 1024.0f;	//Units Per Pixel
 
 	yo = upp * (facingRight ? 120.0f : 160.0f);
-	switch (GetState())
-	{
+	if (dying){
+		xo = -upp * 36.0f + (GetFrame()*(upp*36.0f));
+		NextFrame(2);
+	}
+	else{
+		switch (GetState())
+		{
 		case STATE_LOOK:	xo = 0.0f; break;
 		case STATE_WALK:	xo = 0.0f + (GetFrame()*(upp*36.0f));
-							NextFrame(4); break;
+			NextFrame(4); break;
+		}
 	}
 	xf = xo + upp * 36.0f;
 	yf = yo - upp * 40.0f;
@@ -55,6 +61,13 @@ void cZombie::Draw(int tex_id)
 
 void cZombie::Update(cGame& g) 
 {
-	intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());
+	if (dyingDelay > 0){
+		dyingDelay--;
+	}
+	else if (dyingDelay == 0 && dying){
+		alive = false;
+	}
+	else intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());
+	
 	Logic(g.getScene().GetMap());
 }

@@ -14,6 +14,7 @@ cBicho::cBicho(void)
 	health = 2;
 	shootDelay = 0;
 	bichoDelay = 15;
+	dyingDelay = 0;
 }
 cBicho::~cBicho(void){}
 cBicho::cBicho(int posx,int posy,int width,int height)
@@ -208,10 +209,15 @@ bool cBicho::collidesWith(AABB other)
 	return true;
 }
 
+
+
 void cBicho::die()
 {
-	alive = false;
+	dying = true;
+	dyingDelay = 40;
 }
+
+
 bool cBicho::isAlive()
 {
 	return alive;
@@ -353,8 +359,8 @@ void cBicho::Logic(int *map)
 	if (jumping)
 	{
 		jump_alfa += JUMP_STEP;
-		
-		if(jump_alfa == 180)
+
+		if (jump_alfa == 180)
 		{
 			jumping = false;
 			y = jump_y;
@@ -362,9 +368,9 @@ void cBicho::Logic(int *map)
 		else
 		{
 			alfa = ((float)jump_alfa) * 0.017453f;
-			y = jump_y + (int)( ((float)JUMP_HEIGHT) * sin(alfa) );
-		
-			if(jump_alfa > 90)
+			y = jump_y + (int)(((float)JUMP_HEIGHT) * sin(alfa));
+
+			if (jump_alfa > 90)
 			{
 				//Over floor?
 				jumping = !CollidesMapFloor(map);
@@ -381,6 +387,7 @@ void cBicho::Logic(int *map)
 		}
 		//estat falling
 	}
+
 }
 
 

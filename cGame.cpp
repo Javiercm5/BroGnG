@@ -116,6 +116,7 @@ bool cGame::Process()
 
 //Output
 
+//falta bosses
 void cGame::Render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -192,6 +193,7 @@ void cGame::addProjectile(bool right, int x, int y, int type, bool enemy)
 	}
 }
 
+//falta bosses i colisions amb player
 void cGame::ProjectilesLogic()
 {
 	for (int i = 0; i < MAX_PROJECTILES; ++i){
@@ -251,6 +253,8 @@ struct position{
 	int x, y;
 };
 
+
+//falta ficar bosses
 void cGame::levelInits(int lvl)
 {
 	if (lvl == 1){
@@ -318,6 +322,6 @@ void cGame::levelInits(int lvl)
 			tanks[i].SetDirection(1);
 		}
 	}
-}
+} //falta ficar bosses
 
 

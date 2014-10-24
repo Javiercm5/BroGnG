@@ -89,6 +89,7 @@ protected:
 	bool jumping;
 	bool falling;
 	bool crouching;
+	bool dying;
 
 	bool canGoForward(bool goRight, int *map);
 	
@@ -97,7 +98,7 @@ protected:
 	
 	int health;
 	int alive;
-	int shootDelay, bichoDelay;
+	int shootDelay, bichoDelay, dyingDelay;
 
 
 };
