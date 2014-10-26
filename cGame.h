@@ -6,7 +6,7 @@
 #include "cZombie.h"
 #include "cProjectile.h"
 #include "cTank.h"
-
+#include "cDemon.h"
 
 #define GAME_WIDTH	320
 #define GAME_HEIGHT 240
@@ -37,6 +37,8 @@ public:
 	void addProjectile(bool right, int x, int y, int type, bool enemy);
 	cPlayer getPlayer(int nPlayer);
 	void gameOver();
+	void levelFinished();
+	void updateScore(int points, int player);
 
 
 private:
@@ -49,6 +51,7 @@ private:
 
 	cZombie zombies[MAX_ZOMBIES];
 	cTank tanks[MAX_TANKS];
+	cDemon demon;
 
 	int levelZombies;
 	int levelTanks;
@@ -64,7 +67,9 @@ private:
 	void ProjectilesLogic();
 	void collisionsLogic();
 	void levelInits(int lvl);
-	void render_string(void* font, const char* string);
+	void render_string(void* font, const std::string s);
 	bool gameEnd;
+
+	void loadResources();
 
 };

@@ -213,10 +213,11 @@ bool cBicho::collidesWith(AABB other)
 
 
 
-void cBicho::die()
+void cBicho::die(int player)
 {
 	dying = true;
 	dyingDelay = 40;
+	deadBy = player;
 }
 
 
@@ -224,10 +225,10 @@ bool cBicho::isAlive()
 {
 	return alive;
 }
-void cBicho::impact(int damage)
+void cBicho::impact(int damage, int player)
 {
 	health -= damage;
-	if (health <= 0) die();
+	if (health <= 0) die(player);
 }
 
 

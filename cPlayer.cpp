@@ -19,6 +19,7 @@ void cPlayer::Draw(int tex_id)
 		float upp = 1.0f / 1024.0f;	//Units Per Pixel
 
 		yo = upp * (facingRight ? 40.0f : 80.0f);
+		if (health <= 2) yo = upp * (facingRight ? 520.0f : 560.0f);
 		if (jumping) {
 			xo = 0.0f + upp*36.0f*7.0f;
 			int state = GetState();
@@ -56,10 +57,12 @@ void cPlayer::Draw(int tex_id)
 	}
 }
 
-void cPlayer::impact(int damage) {
+void cPlayer::impact(int damage, int player) {
+	
 	if (!godMode){
 		health -= damage;
 		if (health <= 0) alive = false;
+		
 		//godmode 3 sec
 		else{
 			godMode = true;
@@ -71,8 +74,9 @@ void cPlayer::impact(int damage) {
 
 void cPlayer::Update(cGame& g)
 {
-	if (!alive){
+	if (health <= 0){
 		g.gameOver();
+		alive = false;
 	}
 	else{
 		if (godMode){
@@ -98,4 +102,9 @@ void cPlayer::Update(cGame& g)
 bool cPlayer::isGod()
 {
 	return godMode;
+}
+
+int cPlayer::getHealth()
+{
+	return health;
 }

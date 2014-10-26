@@ -13,6 +13,8 @@ cGame::~cGame(void)
 
 bool cGame::Init()
 {
+	
+	
 	bool res = true;
 	gameEnd = false;
 	player1Score = 0;
@@ -36,7 +38,7 @@ bool cGame::Init()
 	res = Data.LoadImage(IMG_BLOCKS, "tileset.png", GL_RGBA);
 	if (!res) return false;
 
-	res = Data.LoadImage(IMG_PARALLAX, "parallaxsheet.png", GL_RGBA);
+	res = Data.LoadImage(IMG_GAME_OVER, "gameOver.png", GL_RGB);
 	if (!res) return false;
 
 
@@ -56,6 +58,7 @@ bool cGame::Init()
 
 	return res;
 }
+
 
 bool cGame::Loop()
 {
@@ -85,34 +88,44 @@ void cGame::ReadMouse(int button, int state, int x, int y)
 bool cGame::Process()
 {
 	bool res = true;
-
-	//Process Input
 	if (keys[27])	res = false;
 
-	if (keys[GLUT_KEY_UP])			Player.Jump(Scene.GetMap());
-	if (keys[GLUT_KEY_LEFT])			Player.MoveLeft(Scene.GetMap());
-	else if (keys[GLUT_KEY_RIGHT])	Player.MoveRight(Scene.GetMap());
-	//else if(keys[GLUT_KEY_DOWN])	Player.crouch();
-	else if (keys[32])				Player.shoot();
-	else Player.Stop();
+	if (gameEnd){
+		CameraUpdate(0, 0);
 
 
-	//--GAME LOGIC
-
-	if(Player.isAlive()) Player.Update(*this);
-
-	for (int i = 0; i < levelZombies; ++i){
-		if (zombies[i].isAlive()) zombies[i].Update(*this);
+		if (keys[32]) {
+			gameEnd = false;
+			levelInits(level);
+		}
 	}
-	for (int i = 0; i < levelTanks; ++i){
-		if (tanks[i].isAlive()) tanks[i].Update(*this);
+	else {
+		//Process Input
+
+		if (keys[GLUT_KEY_UP])			Player.Jump(Scene.GetMap());
+		if (keys[GLUT_KEY_LEFT])			Player.MoveLeft(Scene.GetMap());
+		else if (keys[GLUT_KEY_RIGHT])	Player.MoveRight(Scene.GetMap());
+		//else if(keys[GLUT_KEY_DOWN])	Player.crouch();
+		else if (keys[32])				Player.shoot();
+		else Player.Stop();
+
+		//GAME LOGIC
+		//if (Player.isAlive()) 
+		Player.Update(*this);
+
+		for (int i = 0; i < levelZombies; ++i){
+			if (zombies[i].isAlive()) zombies[i].Update(*this);
+		}
+		for (int i = 0; i < levelTanks; ++i){
+			if (tanks[i].isAlive()) tanks[i].Update(*this);
+		}
+		if (demon.isAlive()) demon.Update(*this);
+
+		collisionsLogic();
+		ProjectilesLogic();
+
+		CameraUpdate(Player.GetPositionX(), Player.GetPositionY());
 	}
-
-	collisionsLogic();
-	ProjectilesLogic();
-
-	CameraUpdate(Player.GetPositionX(), Player.GetPositionY());
-
 	return res;
 }
 
@@ -125,37 +138,56 @@ void cGame::Render()
 
 	glLoadIdentity();
 
-	Scene.Draw(Data.GetID(IMG_BLOCKS));
-
-	if (Player.isAlive()) Player.Draw(Data.GetID(IMG_PLAYER));
-
-
-
-
-	for (int i = 0; i < levelZombies; ++i){
-		if (zombies[i].isAlive()) zombies[i].Draw(Data.GetID(IMG_PLAYER));
+	if (gameEnd) {
+		
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, Data.GetID(IMG_GAME_OVER));
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 1.0f);	glVertex2i(SCENE_Xo, SCENE_Yo);
+		glTexCoord2f(1.0f, 1.0f);	glVertex2i(SCENE_Xo + SCENE_WIDTH * TILE_SIZE, SCENE_Yo);
+		glTexCoord2f(1.0f, 0.0f);	glVertex2i(SCENE_Xo + SCENE_WIDTH * TILE_SIZE, SCENE_Yo + GAME_HEIGHT * TILE_SIZE);
+		glTexCoord2f(0.0f, 0.0f);	glVertex2i(SCENE_Xo, SCENE_Yo + GAME_HEIGHT * TILE_SIZE);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
 	}
 
-	for (int i = 0; i < levelTanks; ++i){
-		if (tanks[i].isAlive()) tanks[i].Draw(Data.GetID(IMG_PLAYER));
-	}
 
-	for (int i = 0; i < MAX_PROJECTILES; ++i) {
-		if (Bullets[i].isAlive()) Bullets[i].draw(Data.GetID(IMG_MISC));
-	}
+	else{
 
-	if (gameEnd){
-		int fx;
-		char *s = { "Game Over" };
+		Scene.Draw(Data.GetID(IMG_BLOCKS));
+
+		if (Player.isAlive()) Player.Draw(Data.GetID(IMG_PLAYER));
+
+		for (int i = 0; i < levelZombies; ++i){
+			if (zombies[i].isAlive()) zombies[i].Draw(Data.GetID(IMG_PLAYER));
+		}
+
+		for (int i = 0; i < levelTanks; ++i){
+			if (tanks[i].isAlive()) tanks[i].Draw(Data.GetID(IMG_PLAYER));
+		}
+
+		for (int i = 0; i < MAX_PROJECTILES; ++i) {
+			if (Bullets[i].isAlive()) Bullets[i].draw(Data.GetID(IMG_MISC));
+		}
+
+		if (demon.isAlive()) demon.Draw(Data.GetID(IMG_PLAYER));
 
 		glDisable(GL_TEXTURE_2D);
-		glRasterPos2f(cameraX + 1.0f / 3.0f * GAME_WIDTH, cameraY + 1.0f / 2.0f * GAME_HEIGHT);
-		render_string(GLUT_BITMAP_HELVETICA_18, { "Game Over" });
-		glEnable(GL_TEXTURE_2D);
+
+		std::string s = { "Player 1 score: " };
+		s = s + std::to_string(player1Score);
+		glRasterPos2f(cameraX, cameraY + GAME_HEIGHT - 18);
+		render_string(GLUT_BITMAP_HELVETICA_18, s);
+
+		s = { "Health: " };
+		s = s + std::to_string(Player.getHealth());
+		glRasterPos2f(cameraX, cameraY);
+		render_string(GLUT_BITMAP_HELVETICA_18, s);
+
+
+		//glEnable(GL_TEXTURE_2D);
+		glutSwapBuffers();
 	}
-
-
-	glutSwapBuffers();
 }
 
 void cGame::CameraUpdate(int px, int py)
@@ -207,7 +239,6 @@ void cGame::addProjectile(bool right, int x, int y, int type, bool enemy)
 	}
 }
 
-//falta bosses i colisions amb player
 void cGame::ProjectilesLogic()
 {
 	for (int i = 0; i < MAX_PROJECTILES; ++i){
@@ -216,32 +247,39 @@ void cGame::ProjectilesLogic()
 
 			Bullets[i].logic(Scene.GetMap());
 
+			//Enemy bullets vs player
 			if (Bullets[i].isEnemy()){
 				if (Player.isAlive() && Player.collidesWith(Bullets[i].getAABB())){
-					Player.impact(Bullets[i].GetDamage());
+					Player.impact(Bullets[i].GetDamage(), 0);
 					Bullets[i].impact();
 				}
 			}
 			else{
+
 				for (int j = 0; j < levelZombies; ++j){
-					if (zombies[j].isAlive() && zombies[j].collidesWith(Bullets[i].getAABB())){
-						zombies[j].impact(Bullets[i].GetDamage());
+
+					if (zombies[j].isAlive() &&  !zombies[j].isDying() & zombies[j].collidesWith(Bullets[i].getAABB())){
+						zombies[j].impact(Bullets[i].GetDamage(), 1);
 						Bullets[i].impact();
 					}
 				}
 				for (int j = 0; j < levelTanks; ++j){
 					if (tanks[j].isAlive() && tanks[j].collidesWith(Bullets[i].getAABB())){
-						tanks[j].impact(Bullets[i].GetDamage());
+						tanks[j].impact(Bullets[i].GetDamage(), 1);
 						Bullets[i].impact();
 					}
 				}
 
-				//per tots els tanks
+				if (demon.isAlive() && demon.collidesWith(Bullets[i].getAABB())){
+					demon.impact(Bullets[i].GetDamage(), 1);
+					Bullets[i].impact();
+				}
 
 				for (int j = 0; j < MAX_PROJECTILES; ++j){
 					if (Bullets[i].isAlive() && Bullets[j].isAlive() && Bullets[j].isEnemy() && Bullets[j].collideWith(Bullets[i].getAABB())){
 						Bullets[j].impact();
 						Bullets[i].impact();
+						player1Score += 1;
 					}
 				}
 			}
@@ -249,6 +287,7 @@ void cGame::ProjectilesLogic()
 
 		}
 	}
+	
 
 }
 
@@ -256,14 +295,15 @@ void cGame::collisionsLogic()
 {
 	for (int i = 0; i < levelZombies; i++){
 		if (zombies[i].isAlive() && !zombies[i].isDying() && Player.collidesWith(zombies[i].getAABB()) ){
-			Player.impact(zombies[i].getDamage());
+			Player.impact(zombies[i].getDamage(), 0);
 		}
 	}
 	for (int i = 0; i < levelTanks; ++i){
 		if (tanks[i].isAlive() && !tanks[i].isDying() && Player.collidesWith(tanks[i].getAABB())){
-			Player.impact(tanks[i].getDamage());
+			Player.impact(tanks[i].getDamage(), 0);
 		}
 	}
+	if (demon.isAlive() && Player.collidesWith(demon.getAABB())) Player.impact(demon.getDamage(), 0);
 }
 
 cScene cGame::getScene()
@@ -285,6 +325,28 @@ struct position{
 //falta ficar bosses
 void cGame::levelInits(int lvl)
 {
+	level = lvl;
+	bool res = true;
+	gameEnd = false;
+	player1Score = 0;
+	//Graphics initialization
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	cameraX = 0;
+	cameraY = 0;
+	glOrtho(cameraX, GAME_WIDTH, cameraY, GAME_HEIGHT, 0, 1);
+	glMatrixMode(GL_MODELVIEW);
+
+	glAlphaFunc(GL_GREATER, 0.05f);
+	glEnable(GL_ALPHA_TEST);
+
+	levelZombies = MAX_ZOMBIES;
+	levelTanks = MAX_TANKS;
+
+	res = Scene.LoadLevel(level);
+	//if (!res) return false;
+
 	if (lvl == 1){
 		levelZombies = 15;
 		levelTanks = 3;
@@ -316,6 +378,12 @@ void cGame::levelInits(int lvl)
 			tanks[i].SetState(STATE_WALK);
 			tanks[i].SetDirection(1);
 		}
+
+		demon.SetWidthHeight(64, 64);
+		demon.SetTile(90, 4);
+		demon.SetWidthHeight(64, 64);
+		demon.SetState(STATE_WALK);
+		demon.SetDirection(1);
 	}
 
 	if (lvl == 2){
@@ -349,21 +417,47 @@ void cGame::levelInits(int lvl)
 			tanks[i].SetState(STATE_WALK);
 			tanks[i].SetDirection(1);
 		}
+		demon.SetWidthHeight(64, 64);
+		demon.SetTile(90, 4);
+		demon.SetWidthHeight(64, 64);
+		demon.SetState(STATE_WALK);
+		demon.SetDirection(1);
 	}
-} //falta ficar bosses
+
+} 
 
 
 void cGame::gameOver()
 {
 	gameEnd = true;
-	//exit(1);
+
 }
 
 
 
-void cGame::render_string(void* font, const char* string)
+void cGame::render_string(void* font, const std::string s)
 {
-	int i, len = strlen(string);
-	for (i = 0; i<len; i++)
-		glutBitmapCharacter(font, string[i]);
+	for (int i = 0; i<s.length(); i++)
+		glutBitmapCharacter(font, s[i]);
+}
+
+void cGame::levelFinished()
+{
+	if (level < 2){
+		level++;
+		levelInits(level);
+		
+		//cargar nou lvl, etc
+	}
+	else{
+		//mostrar pantalla final blabalba
+	}
+
+}
+
+void cGame::updateScore(int points, int player)
+{
+	switch (player){
+	case 1: player1Score += points; break;
+	}
 }

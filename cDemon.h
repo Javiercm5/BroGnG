@@ -1,5 +1,9 @@
 #pragma once
 #include "cBicho.h"
+
+#define STATE_IDLE2	4
+
+
 class cDemon :
 	public cBicho
 {
@@ -12,6 +16,7 @@ public:
 
 private: 	
 	bool goRight;
+	bool waiting;
 
 };
 

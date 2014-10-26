@@ -10,7 +10,7 @@
 #define IMG_BLOCKS		0
 #define IMG_PLAYER		1
 #define IMG_MISC		2
-#define IMG_PARALLAX	3
+#define IMG_GAME_OVER	3
 /*
 #define IMG_ENEMY1	2
 #define IMG_ENEMY2	3

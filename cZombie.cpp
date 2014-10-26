@@ -64,6 +64,7 @@ void cZombie::Update(cGame& g)
 		dyingDelay--;
 	}
 	else if (dyingDelay == 0 && dying){
+		g.updateScore(10, deadBy);
 		alive = false;
 	}
 	else intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());

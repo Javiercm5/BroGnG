@@ -66,8 +66,8 @@ public:
 	AABB getAABB();
 
 	bool collidesWith(AABB other);
-	void die();
-	virtual void impact(int damage);
+	void die(int player);
+	virtual void impact(int damage, int player);
 	bool isAlive();
 	bool isDying();
 
@@ -92,6 +92,8 @@ protected:
 	bool falling;
 	bool crouching;
 	bool dying;
+	int deadBy;
+
 
 	bool canGoForward(bool goRight, int *map);
 

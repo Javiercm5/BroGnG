@@ -6,6 +6,7 @@
 #include <math.h>
 #include <cmath> 
 #include <gl/glut.h>
+#include <string>
 
 
 class AABB

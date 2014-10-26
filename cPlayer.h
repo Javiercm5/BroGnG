@@ -14,8 +14,9 @@ public:
 	~cPlayer();
 
 	void Draw(int tex_id);
-	void impact(int damage) override;
+	void impact(int damage, int player) override;
 	void Update(cGame& g) override;
+	int getHealth();
 
 private:
 	int bulletsDelay = PROJECTILES_PLAYER_DELAY;
