@@ -80,7 +80,7 @@ void main(int argc, char** argv)
 	pos_y = (res_y>>1)-(GAME_HEIGHT>>1);
 	
 	glutInitWindowPosition(pos_x,pos_y);
-	glutInitWindowSize(GAME_WIDTH,GAME_HEIGHT);
+	glutInitWindowSize(640,480);
 	glutCreateWindow("BroGnG!");
 
 	/*glutGameModeString("800x600:32");

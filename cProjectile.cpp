@@ -53,22 +53,6 @@ void cProjectile::logic(int *map)
 	if (CollidesMapWall(map, facingRight)){
 		impact();
 	}
-
-
-	/*
-	//////////////
-	if ((posX % TILE_SIZE) == 0){
-		xaux = posX;
-		(facingRight ? posX += speed : posX -= speed);
-
-		if (CollidesMapWall(map, facingRight)){
-			impact();
-		}
-		//impactar enemic ese if ...
-	}
-	else (facingRight ? posX += speed : posX -= speed);
-	*/
-
 }
 
 

@@ -7,15 +7,20 @@ cTank::cTank()
 {
 	STEP_LENGTH = 1;
 	FRAME_DELAY = 13;
-	alive = true;
-	health = 6;
-	SetWidthHeight(64, 64);
 	bichoDelay = 30;
-	shootDelay = 0;
 	damage = 2;
+
 }
 cTank::~cTank()
 {
+}
+
+void cTank::init()
+{
+	alive = true;
+	health = 6;
+	shootDelay = 0;
+	dying = false;
 }
 
 void cTank::intelligence(int *map, int playerX, int playerY)
@@ -34,7 +39,7 @@ void cTank::intelligence(int *map, int playerX, int playerY)
 		if (playerX > posx) goRight = facingRight = true;
 		else goRight = facingRight = false;
 
-		if (threshold > 3 * 36){
+		if (threshold > 3 * 36 && threshold < 6*36){
 			walk = false;
 			shoot();
 		}
@@ -82,6 +87,9 @@ void cTank::Update(cGame& g)
 
 	Logic(g.getScene().GetMap());
 
-	if (shootDelay == bichoDelay) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);
+	if (shootDelay == bichoDelay){
+		g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);
+		g.emitSound(SOUND_SHOOT_ENEMY);
+	}
 	if (shootDelay > 0) --shootDelay;
 }

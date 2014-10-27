@@ -15,6 +15,11 @@
 #define MAX_ZOMBIES		50
 #define MAX_TANKS		15
 
+#define SOUND_JUMP_PLAYER		0
+#define SOUND_SHOOT_PLAYER		1
+#define SOUND_BODY_IMPACT		3
+#define SOUND_WALL_IMPACT		4
+#define SOUND_SHOOT_ENEMY		5
 
 class cGame
 {
@@ -39,6 +44,8 @@ public:
 	void gameOver();
 	void levelFinished();
 	void updateScore(int points, int player);
+	bool isOver();
+	void emitSound(int type);
 
 
 private:
@@ -69,7 +76,14 @@ private:
 	void levelInits(int lvl);
 	void render_string(void* font, const std::string s);
 	bool gameEnd;
+	bool gameFinished;
 
 	void loadResources();
+
+	HWND handle;
+	HSAMPLE lvl1Music, gameOverMusic, lvl2Music, gameWinMusic, shootSound, jumpSound, impactBodySound, impactWallSound, shootEnemySound;
+	HCHANNEL hBackgroundChannel, hPlayerChannel, hZombieChannel, hTankChannel, hDemonChannel, hImpactsChannel;
+
+
 
 };

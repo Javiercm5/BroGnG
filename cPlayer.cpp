@@ -6,11 +6,23 @@
 cPlayer::cPlayer()
 {
 	bichoDelay = 15;
-	shootDelay = 0;
-	health = 4;
 }
 cPlayer::~cPlayer()
 {}
+
+void cPlayer::init()
+{
+	health = 4;
+	alive = true;
+	falling = false;
+	SetState(STATE_LOOK);
+	jumping = false;
+	crouching = false;
+	facingRight = true;
+	shootDelay = 0;
+	dyingDelay = 0;
+}
+
 
 void cPlayer::Draw(int tex_id)
 {
@@ -74,7 +86,7 @@ void cPlayer::impact(int damage, int player) {
 
 void cPlayer::Update(cGame& g)
 {
-	if (health <= 0){
+	if (health <= 0 && !g.isOver()){
 		g.gameOver();
 		alive = false;
 	}
@@ -86,10 +98,10 @@ void cPlayer::Update(cGame& g)
 
 
 		Logic(g.getScene().GetMap());
-
 		if (shootDelay == bichoDelay){
 			if (facingRight) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR, false);
 			else g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR, false);
+			g.emitSound(SOUND_SHOOT_PLAYER);
 		}
 		if (shootDelay > 0) --shootDelay;
 	}
@@ -108,3 +120,9 @@ int cPlayer::getHealth()
 {
 	return health;
 }
+
+void cPlayer::heal(int amount)
+{
+	health += amount;
+}
+

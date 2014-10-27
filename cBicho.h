@@ -48,7 +48,7 @@ public:
 
 	void MoveRight(int *map);
 	void MoveLeft(int *map);
-	void Jump(int *map);
+	bool Jump(int *map);
 	void Stop();
 	void Logic(int *map);
 
@@ -70,10 +70,13 @@ public:
 	virtual void impact(int damage, int player);
 	bool isAlive();
 	bool isDying();
+	virtual void init();
 
 
 	virtual void Update(cGame& g);
 	int getDamage();
+
+	bool isInTheAir();
 
 private:
 	int x, y;

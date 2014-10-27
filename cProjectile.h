@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Globals.h"
+//#include "cGame.h"
 
 #define TYPE_SPEAR		0
 #define TYPE_FIREBALL	1

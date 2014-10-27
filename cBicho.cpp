@@ -330,7 +330,7 @@ void cBicho::Stop()
 	falling = false;
 	crouching = false;
 }
-void cBicho::Jump(int *map)
+bool cBicho::Jump(int *map)
 {
 	if (!jumping)
 	{
@@ -341,6 +341,7 @@ void cBicho::Jump(int *map)
 			jump_y = y;
 		}
 	}
+	return jumping;
 }
 void cBicho::crouch()
 {
@@ -432,6 +433,11 @@ void cBicho::Update(cGame& g)
 
 }
 
+void cBicho::init()
+{
+
+}
+
 int cBicho::getDamage()
 {
 	return damage;
@@ -440,4 +446,9 @@ int cBicho::getDamage()
 bool cBicho::isDying()
 {
 	return dying;
+}
+
+bool cBicho::isInTheAir()
+{
+	return (jumping || falling);
 }

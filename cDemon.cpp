@@ -8,11 +8,7 @@ cDemon::cDemon()
 {
 	STEP_LENGTH = 1;
 	FRAME_DELAY = 10;
-	alive = true;
-	health = 20;
-	SetWidthHeight(64, 64);
 	bichoDelay = 40;
-	shootDelay = 0;
 	damage = 2;
 
 }
@@ -20,6 +16,15 @@ cDemon::cDemon()
 
 cDemon::~cDemon()
 {
+
+}
+
+void cDemon::init()
+{
+	alive = true;
+	health = 20;
+	shootDelay = 0;
+	dying = false;
 }
 
 
@@ -103,6 +108,9 @@ void cDemon::Update(cGame& g)
 
 		Logic(g.getScene().GetMap());
 
-		if (shootDelay == bichoDelay) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);
+		if (shootDelay == bichoDelay){
+			g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);
+			g.emitSound(SOUND_SHOOT_ENEMY);
+		}
 		if (shootDelay > 0) --shootDelay;
 }

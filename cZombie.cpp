@@ -3,16 +3,22 @@
 
 cZombie::cZombie()
 {
-	STEP_LENGTH = 1;
-	FRAME_DELAY = 8;
-	alive = true;
-	health = 2;
-	damage = 1;
+
 }
 cZombie::~cZombie()
 {
-}
+	STEP_LENGTH = 1;
+	FRAME_DELAY = 8;
 
+}
+void cZombie::init()
+{
+	alive = true;
+	health = 2;
+	damage = 1;
+	dying = false;
+
+}
 
 void cZombie::intelligence(int *map, int playerX, int playerY)
 {

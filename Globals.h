@@ -7,6 +7,9 @@
 #include <cmath> 
 #include <gl/glut.h>
 #include <string>
+#include <c/bass.h>
+#pragma comment(lib, "bass.lib")
+
 
 
 class AABB
