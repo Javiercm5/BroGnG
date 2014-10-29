@@ -9,6 +9,10 @@
 #include <string>
 #include <c/bass.h>
 #pragma comment(lib, "bass.lib")
+//#include <SDL.h>
+//#pragma comment(lib, "SDL2.lib")
+#include <Xinput.h>
+#pragma comment(lib, "XInput.lib")
 
 
 

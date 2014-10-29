@@ -3,7 +3,7 @@
 #include "cGame.h"
 
 //Delete console
-#pragma comment(linker, "/subsystem:\"console\" /entry:\"mainCRTStartup\"")
+#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 
 //Avoid rendering too fast
 #define FPS 50
@@ -37,21 +37,12 @@ void AppMouse(int button, int state, int x, int y)
 {
 	Game.ReadMouse(button,state,x,y);
 }
-/*
-void AppIdle()
-{
-	if(!Game.Loop()) exit(0);
-}*/
+
 
 
 
 void AppIdle()
 {
-	// Option A: hogs CPU, but gets the desired FPS
-	//Sleep(1); // Small fix
-	//while (glutGet(GLUT_ELAPSED_TIME) - lastTick < TICK_INTERVAL); 
-
-	// Option B: doesn't hog CPU, but sleep has no guarantees, so actual FPS is reduced
 	while (1) {
 		int remaining = (lastTick + TICK_INTERVAL) - glutGet(GLUT_ELAPSED_TIME);
 		if (remaining <= 0) break;

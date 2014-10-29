@@ -109,7 +109,8 @@ void cDemon::Update(cGame& g)
 		Logic(g.getScene().GetMap());
 
 		if (shootDelay == bichoDelay){
-			g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);
+			if(facingRight)g.addProjectile(facingRight, GetPositionX()+64, GetPositionY() + 30, TYPE_FIREBALL, true);
+			else g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);
 			g.emitSound(SOUND_SHOOT_ENEMY);
 		}
 		if (shootDelay > 0) --shootDelay;

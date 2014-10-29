@@ -7,6 +7,7 @@
 #include "cProjectile.h"
 #include "cTank.h"
 #include "cDemon.h"
+#include "cXboxController.h"
 
 #define GAME_WIDTH	320
 #define GAME_HEIGHT 240
@@ -20,6 +21,14 @@
 #define SOUND_BODY_IMPACT		3
 #define SOUND_WALL_IMPACT		4
 #define SOUND_SHOOT_ENEMY		5
+#define SOUND_MENU_MOV			6
+
+#define MAIN_MENU			0
+#define CONTROLS_MENU		1
+#define CREDITS_MENU		2
+#define GAMEOVER_MENU		3
+#define GAMEWIN_MENU		4
+#define NO_MENU				-1
 
 class cGame
 {
@@ -49,28 +58,34 @@ public:
 
 
 private:
+	//CONTROLS
 	unsigned char keys[256];
-	int level;
-	cScene Scene;
-	cPlayer Player;
-	cData Data;
-	cProjectile Bullets[MAX_PROJECTILES];
+	cXboxController gamepad;
 
+	//SOUND
+	HWND handle;
+	HSAMPLE lvl1Music, gameOverMusic, lvl2Music, gameWinMusic, shootSound, jumpSound, impactBodySound, impactWallSound, shootEnemySound, gameStart, menuMovement;
+	HCHANNEL hBackgroundChannel, hPlayerChannel, hZombieChannel, hTankChannel, hDemonChannel, hImpactsChannel;
+	
+	//GAME
+	int level;
+	cData Data;
+	int player1Score;
+	int menu, optionSelected;
+	int keyDelay;
+
+	cScene Scene;
+	int cameraX, cameraY;
+	cPlayer Player;
+	int levelZombies, levelTanks;
 	cZombie zombies[MAX_ZOMBIES];
 	cTank tanks[MAX_TANKS];
 	cDemon demon;
+	cProjectile Bullets[MAX_PROJECTILES];
 
-	int levelZombies;
-	int levelTanks;
-	int cameraX, cameraY;
 
-	int player1Score;
-
-	//int GAME_WIDTH = 640;
-	//int GAME_HEIGHT = 480;
 
 	void CameraUpdate(int px, int py);
-	void EnemiesLogic(int px, int py);
 	void ProjectilesLogic();
 	void collisionsLogic();
 	void levelInits(int lvl);
@@ -79,11 +94,6 @@ private:
 	bool gameFinished;
 
 	void loadResources();
-
-	HWND handle;
-	HSAMPLE lvl1Music, gameOverMusic, lvl2Music, gameWinMusic, shootSound, jumpSound, impactBodySound, impactWallSound, shootEnemySound;
-	HCHANNEL hBackgroundChannel, hPlayerChannel, hZombieChannel, hTankChannel, hDemonChannel, hImpactsChannel;
-
-
+	void drawHud();
 
 };

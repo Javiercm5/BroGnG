@@ -13,61 +13,66 @@ cGame::~cGame(void)
 
 bool cGame::Init()
 {
-	
+	//SOUND INITS
 	BASS_Init(1, 44100, 0, 0, NULL);
-	//HSTREAM chan1 = BASS_StreamCreateFile(false, "sounds/Stage_Theme_01.mp3", 0, NULL, NULL);
 	lvl1Music = BASS_SampleLoad(false, "sounds/Stage_Theme_01.mp3", 0, 0, 3, BASS_SAMPLE_LOOP);
 	lvl2Music = BASS_SampleLoad(false, "sounds/Stage_Theme_02.mp3", 0, 0, 3, BASS_SAMPLE_LOOP);
-
+	gameStart = BASS_SampleLoad(false, "sounds/Game_Start.mp3", 0, 0, 3, 0);
 	gameOverMusic = BASS_SampleLoad(false, "sounds/Game_Over.mp3", 0, 0, 3, 0);
 	gameWinMusic = BASS_SampleLoad(false, "sounds/Stage_Clear.mp3", 0, 0, 3, 0);
-
+	
 	shootSound = BASS_SampleLoad(false, "sounds/shoot.wav", 0, 0, 3, 0);
 	jumpSound = BASS_SampleLoad(false, "sounds/Jump.wav", 0, 0, 3, 0);
 	impactBodySound = BASS_SampleLoad(false, "sounds/Impact_enemy.wav", 0, 0, 3, 0);
-	//impactWallSound = BASS_SampleLoad(false, "sounds/Impact_wall.wav.wav", 0, 0, 3, 0);
 	shootEnemySound = BASS_SampleLoad(false, "sounds/shoot_enemy.wav", 0, 0, 3, 0);
+	menuMovement = BASS_SampleLoad(false, "sounds/menuMovement.wav", 0, 0, 3, 0);
+
 
 	bool res = true;
 	gameEnd = false;
 	gameFinished = true;
 	player1Score = 0;
+	gamepad.setPlayer(1);
+	keyDelay = 5;
 	//Graphics initialization
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	cameraX = 0;
 	cameraY = 0;
-	glOrtho(cameraX, GAME_WIDTH, cameraY, GAME_HEIGHT, 0, 1);
+	glOrtho(cameraX, GAME_WIDTH, cameraY, GAME_HEIGHT, -1, 2);
 	glMatrixMode(GL_MODELVIEW);
 
 	glAlphaFunc(GL_GREATER, 0.05f);
-	glEnable(GL_ALPHA_TEST);
+	glEnable(GL_ALPHA_TEST |GLUT_DOUBLE);	
 
 	levelZombies = MAX_ZOMBIES;
 	levelTanks = MAX_TANKS;
+	level = 2;
 
-	level = 1;
+
 	//Scene initialization
 	res = Data.LoadImage(IMG_BLOCKS, "tileset.png", GL_RGBA);
 	if (!res) return false;
-
-	res = Data.LoadImage(IMG_GAME_OVER, "gameOver.png", GL_RGB);
+	res = Data.LoadImage(IMG_MENUS_END, "menuEnd.png", GL_RGBA);
 	if (!res) return false;
-
-
 	res = Data.LoadImage(IMG_MISC, "tilesheetMisc.png", GL_RGBA);
 	if (!res) return false;
-
 	res = Scene.LoadLevel(level);
 	if (!res) return false;
-
-	//Player initialization
 	res = Data.LoadImage(IMG_PLAYER, "tilesheet.png", GL_RGBA);
 	if (!res) return false;
+	res = Data.LoadImage(IMG_MENUS, "menu.png", GL_RGBA);
+	if (!res) return false;
+
+	menu = MAIN_MENU;
+	optionSelected = 0; //0 game, 1 controls, 2 credits, 3 exit
+
 
 	levelInits(level);
-
+	BASS_ChannelStop(hBackgroundChannel);
+	hBackgroundChannel = BASS_SampleGetChannel(gameStart, false);
+	BASS_ChannelPlay(hBackgroundChannel, true);
 
 
 	return res;
@@ -104,29 +109,108 @@ bool cGame::Process()
 	bool res = true;
 	if (keys[27])	res = false;
 
-	if (gameEnd){
-		//CameraUpdate(0, 0);
-		if (keys[13]) {
-			player1Score = 0;
-			levelInits(level);	
+	switch (menu){
+	case MAIN_MENU:
+		hBackgroundChannel = BASS_SampleGetChannel(gameStart, false);
+		if (keyDelay <= 0){
+			if ((keys[GLUT_KEY_UP]
+				|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_DPAD_UP))) {
+				optionSelected--;
+				if (optionSelected == -1) optionSelected = 3;
+				keyDelay = 5;
+				emitSound(SOUND_MENU_MOV);
+			}
+
+			else if ((keys[GLUT_KEY_DOWN]
+				|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_DPAD_DOWN))){
+				optionSelected++;
+				if (optionSelected == 4) optionSelected = 0;
+				keyDelay = 5;
+				emitSound(SOUND_MENU_MOV);
+
+			}
 		}
-	}
-	else if(gameFinished);
+		else {
+			keyDelay--;
+		}
+		if ((keys[13]
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_A))){
+			switch (optionSelected){
+			case 0: 
+				menu = NO_MENU; 
+				player1Score = 0;
+				levelInits(1);
+				break;
+			case 1: menu = CONTROLS_MENU; break;
+			case 2: menu = CREDITS_MENU; break;
+			case 3: res = false; break;
+			}
+		}
+		break;
 
-	else {
-		//Process Input
+	case CONTROLS_MENU:
+		if ((keys[8]
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_BACK))) {
+			menu = MAIN_MENU;
+			optionSelected = 0;
+		}
+		break;
 
-		if (keys[GLUT_KEY_UP] && !Player.isInTheAir())	{
+	case CREDITS_MENU:
+		if ((keys[8]
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_BACK))) {
+			menu = MAIN_MENU;
+			optionSelected = 0;
+		}
+		break;
+
+	case GAMEOVER_MENU:
+		if (keys[13]
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_START)) {
+			menu = NO_MENU;
+			player1Score = 0;
+			levelInits(1);
+		}
+		if ((keys[8]
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_BACK))) {
+			menu = MAIN_MENU;
+			optionSelected = 0;
+		}
+		break;
+
+	case GAMEWIN_MENU:
+		if ((keys[8]
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_BACK))) {
+			menu = MAIN_MENU;
+			optionSelected = 0;
+		}
+		break;
+	case NO_MENU:
+		if ((keys[GLUT_KEY_UP]
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_A))
+			&& !Player.isInTheAir()) {
 			Player.Jump(Scene.GetMap());
 			emitSound(SOUND_JUMP_PLAYER);
-			//bool b;
 		}
 
-		if (keys[GLUT_KEY_LEFT])		Player.MoveLeft(Scene.GetMap());
-		else if (keys[GLUT_KEY_RIGHT])	Player.MoveRight(Scene.GetMap());
-		//else if(keys[GLUT_KEY_DOWN])	Player.crouch();
-		else if (keys[32])	Player.shoot();
+		if (keys[GLUT_KEY_LEFT]
+			|| gamepad.isConnected() && gamepad.analogLeft()
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_DPAD_LEFT)) {
+			Player.MoveLeft(Scene.GetMap());
+		}
+
+		else if (keys[GLUT_KEY_RIGHT]
+			|| gamepad.isConnected() && gamepad.analogRight()
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_DPAD_RIGHT)) {
+			Player.MoveRight(Scene.GetMap());
+		}
+
+		else if (keys[32]
+			|| gamepad.isConnected() && gamepad.isPressed(XINPUT_GAMEPAD_B)) {
+			Player.shoot();
+		}
 		else Player.Stop();
+
 
 		//GAME LOGIC
 		Player.Update(*this);
@@ -134,104 +218,35 @@ bool cGame::Process()
 		for (int i = 0; i < levelZombies; ++i){
 			if (zombies[i].isAlive()) zombies[i].Update(*this);
 		}
+
 		for (int i = 0; i < levelTanks; ++i){
 			if (tanks[i].isAlive()) tanks[i].Update(*this);
 		}
+
 		if (demon.isAlive()) demon.Update(*this);
 
 		collisionsLogic();
+
 		ProjectilesLogic();
 
 		CameraUpdate(Player.GetPositionX(), Player.GetPositionY());
+		break;
 	}
 	return res;
 }
 
-//Output
 
-//falta bosses
 void cGame::Render()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
+	float upp = 1.0f / 1024.0f;
 
-	if (gameEnd) {
+
+	if (menu == NO_MENU) {
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glOrtho(0, 1, 0, 1, -1, 3);
-		
-		//=============IMAGE
-
-		glPushAttrib(GL_CURRENT_BIT);
-		glColor3ub(96, 182, 135);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, Data.GetID(IMG_GAME_OVER));
-		glBegin(GL_QUADS);
-		
-		glTexCoord2f(0.0f, 1.0f);	glVertex2i(0, 0);
-		glTexCoord2f(1.0f, 1.0f);	glVertex2i(1, 0);
-		glTexCoord2f(1.0f, 0.0f);	glVertex2i(1, 1);
-		glTexCoord2f(0.0f, 0.0f);	glVertex2i(0, 1);
-		
-		glEnd();
-		glDisable(GL_TEXTURE_2D);
-
-		
-		//=============TEXT
-
-		std::string s = { "Player 1 score: " };
-		s = s + std::to_string(player1Score);
-		
-		glRasterPos2f(0.05f, 0.3f);
-		
-
-		
-		render_string(GLUT_BITMAP_HELVETICA_18, s);
-		
-		glPopAttrib();
-
-	}
-
-	else if (gameFinished){
-		
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0, GAME_WIDTH, 0, GAME_HEIGHT, -1, 3);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
-		glDisable(GL_TEXTURE_2D);
-		glPushAttrib(GL_CURRENT_BIT);
-		glColor3i(1, 1, 1);
-
-		glBegin(GL_QUADS);
-			glVertex2i(0, 0);
-			glVertex2i(1, 0);
-			glVertex2i(1, 1);
-			glVertex2i(0, 1);
-		glEnd();
-		glPopAttrib();
-
-
-		std::string s = { "Player 1 score: " };
-		s = s + std::to_string(player1Score);
-		glRasterPos2f((GAME_WIDTH /2) - SCENE_Xo, GAME_HEIGHT / 2);
-		render_string(GLUT_BITMAP_HELVETICA_18, s);
-
-	}
-
-
-	else{
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(cameraX, GAME_WIDTH + cameraX, cameraY, GAME_HEIGHT + cameraY, -1, 3);
+		glOrtho(cameraX, GAME_WIDTH + cameraX, cameraY, GAME_HEIGHT + cameraY, -1, 2);
 		glMatrixMode(GL_MODELVIEW);
 
 		Scene.Draw(Data.GetID(IMG_BLOCKS));
@@ -252,33 +267,181 @@ void cGame::Render()
 
 		if (demon.isAlive()) demon.Draw(Data.GetID(IMG_PLAYER));
 
-		glDisable(GL_TEXTURE_2D);
-		glPushAttrib(GL_CURRENT_BIT);
+		drawHud();
 
-		glColor3i(1, 1, 1);
+	}
+
+	else{
+		std::string s;
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0, 1, 0, 1, 0, 1);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glEnable(GL_TEXTURE_2D);
+
+		switch (menu){
+		case MAIN_MENU:
+			glBindTexture(GL_TEXTURE_2D, Data.GetID(IMG_MENUS));
 			glBegin(GL_QUADS);
-			glVertex2i(cameraX, cameraY + GAME_HEIGHT - 18);
-			glVertex2i(cameraX + GAME_WIDTH, cameraY + GAME_HEIGHT - 19);
-			glVertex2i(cameraX + GAME_WIDTH, cameraY + GAME_HEIGHT);
-			glVertex2i(cameraX, cameraY + GAME_HEIGHT);
-		glEnd();
+				glTexCoord2f(0.0f, 0.5f);	glVertex2i(0, 0);
+				glTexCoord2f(0.5f, 0.5f);	glVertex2i(1, 0);
+				glTexCoord2f(0.5f, 0.0f);	glVertex2i(1, 1);
+				glTexCoord2f(0.0f, 0.0f);	glVertex2i(0, 1);
+			glEnd();
 
-		glPopAttrib();
 
-		std::string s = { "Player 1 score: " };
-		s = s + std::to_string(player1Score);
-		glRasterPos3f(cameraX, cameraY + GAME_HEIGHT - 18, 1.0f);
-		render_string(GLUT_BITMAP_HELVETICA_18, s);
+			float xo, yo, xf, yf, aux;
+			aux = 1.0f / 512.0f;
+			yo = (3.5f - (float) optionSelected) * 64.0f * aux;
+			yf = yo  + 64.0f * aux;
 
-		s = { "Health: " };
-		s = s + std::to_string(Player.getHealth());
-		glRasterPos2f(cameraX, cameraY);
-		render_string(GLUT_BITMAP_HELVETICA_18, s);
+			float txo, tyo, txf, tyf;
+			txo = 8.0f * 64.0f * upp;
+			txf = 1.0f;
+
+			tyo = 9.0f * 64.0f * upp;
+			tyf = tyo - 64.0f * upp;
+			
+			glBegin(GL_QUADS);
+				glTexCoord2f(txo, tyf);	glVertex2f(0.0f, yo);
+				glTexCoord2f(txf, tyf);	glVertex2f(1.0f, yo);
+				glTexCoord2f(txf, tyo);	glVertex2f(1.0f, yf);
+				glTexCoord2f(txo, tyo);	glVertex2f(0.0f, yf);
+			glEnd();
+
+			break;
+
+		case CONTROLS_MENU:
+			glBindTexture(GL_TEXTURE_2D, Data.GetID(IMG_MENUS));
+			glBegin(GL_QUADS);
+				glTexCoord2f(0.5f, 0.5f);	glVertex2i(0, 0);
+				glTexCoord2f(1.0f, 0.5f);	glVertex2i(1, 0);
+				glTexCoord2f(1.0f, 0.0f);	glVertex2i(1, 1);
+				glTexCoord2f(0.5f, 0.0f);	glVertex2i(0, 1);
+			glEnd();
+			break;
+
+		case CREDITS_MENU:
+			glBindTexture(GL_TEXTURE_2D, Data.GetID(IMG_MENUS));
+			glBegin(GL_QUADS);
+				glTexCoord2f(0.0f, 1.0f);	glVertex2i(0, 0);
+				glTexCoord2f(0.5f, 1.0f);	glVertex2i(1, 0);
+				glTexCoord2f(0.5f, 0.5f);	glVertex2i(1, 1);
+				glTexCoord2f(0.0f, 0.5f);	glVertex2i(0, 1);
+			glEnd();
+			break;
+
+		case GAMEOVER_MENU:
+			glBindTexture(GL_TEXTURE_2D, Data.GetID(IMG_MENUS_END));
+			glBegin(GL_QUADS);
+				glTexCoord2f(0.0f, 0.5f);	glVertex2i(0, 0);
+				glTexCoord2f(0.5f, 0.5f);	glVertex2i(1, 0);
+				glTexCoord2f(0.5f, 0.0f);	glVertex2i(1, 1);
+				glTexCoord2f(0.0f, 0.0f);	glVertex2i(0, 1);
+			glEnd();
+
+			glDisable(GL_TEXTURE_2D);
+			glPushAttrib(GL_CURRENT_BIT);
+			glColor3ub(6, 200, 229);
+			s = { "Player 1 score: " };
+
+			s = s + std::to_string(player1Score);
+			glRasterPos2f(0.4f, 0.5f);
+			render_string(GLUT_BITMAP_TIMES_ROMAN_24, s);
+			glPopAttrib();
+			break;
+
+		case GAMEWIN_MENU:
+			glBindTexture(GL_TEXTURE_2D, Data.GetID(IMG_MENUS_END));
+			glBegin(GL_QUADS);
+				glTexCoord2f(0.5f, 0.5f);	glVertex2i(0, 0);
+				glTexCoord2f(1.0f, 0.5f);	glVertex2i(1, 0);
+				glTexCoord2f(1.0f, 0.0f);	glVertex2i(1, 1);
+				glTexCoord2f(0.5f, 0.0f);	glVertex2i(0, 1);
+			glEnd();
+			
+			glDisable(GL_TEXTURE_2D);
+			glPushAttrib(GL_CURRENT_BIT);
+			glColor3ub(6, 200, 229);
+			s = { "Player 1 score: " };
+
+			s = s + std::to_string(player1Score);
+			glRasterPos2f(0.4f, 0.5f);
+			render_string(GLUT_BITMAP_TIMES_ROMAN_24, s);
+			glPopAttrib();
+			break;
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 
 	glutSwapBuffers();
 
 }
+
+void cGame::drawHud()
+{
+	float xo, xf, yo, yf;
+	float rate = 1.0f / 256.0f;
+	glDisable(GL_TEXTURE_2D);
+	glPushAttrib(GL_CURRENT_BIT);
+
+	glColor3i(1, 1, 1);
+	glBegin(GL_QUADS);
+		glVertex3i(cameraX, cameraY + GAME_HEIGHT - 19, 0);
+		glVertex3i(cameraX + GAME_WIDTH, cameraY + GAME_HEIGHT - 19, 0);
+		glVertex3i(cameraX + GAME_WIDTH, cameraY + GAME_HEIGHT, 0);
+		glVertex3i(cameraX, cameraY + GAME_HEIGHT, 0);
+	glEnd();
+	glPopAttrib();
+
+
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, Data.GetID(IMG_MISC));
+	xo = 0.0f;
+	xf = 9.0f*13.0f*rate;
+	yo = 13.0f*12.0f*rate;
+	yf = yo - (3.0f * 13.0f * rate);
+	
+	glBegin(GL_QUADS);
+		glTexCoord2f(xo, yo);			glVertex2i(cameraX + (GAME_WIDTH / 3), cameraY + GAME_HEIGHT - 18);
+		glTexCoord2f(xf, yo);			glVertex2i(cameraX + 2*(GAME_WIDTH / 3), cameraY + GAME_HEIGHT - 18);
+		glTexCoord2f(xf, yf);			glVertex2i(cameraX + 2*(GAME_WIDTH / 3), cameraY + GAME_HEIGHT -2);
+		glTexCoord2f(xo, yf);			glVertex2i(cameraX + (GAME_WIDTH / 3), cameraY + GAME_HEIGHT -2);
+	glEnd();
+
+
+
+	xo = 0.0f;
+	xf = 3.0f*13.0f*rate;
+	yo = 13.0f*18.0f*rate;
+	yf = yo - (3.0f * 13.0f * rate);
+	int xHeart = cameraX + GAME_WIDTH;
+	int heartSize = GAME_WIDTH / 12;
+	for (int i = 0; i < Player.getHealth(); ++i){
+		glBegin(GL_QUADS);
+			glTexCoord2f(xo, yo);			glVertex2i(xHeart - heartSize + 5, cameraY + GAME_HEIGHT - 13);
+			glTexCoord2f(xf, yo);			glVertex2i(xHeart - 5, cameraY + GAME_HEIGHT - 13);
+			glTexCoord2f(xf, yf);			glVertex2i(xHeart - 5, cameraY + GAME_HEIGHT-5);
+			glTexCoord2f(xo, yf);			glVertex2i(xHeart - heartSize + 5, cameraY + GAME_HEIGHT-5);
+		glEnd();
+		xHeart -= heartSize;
+	}
+
+
+	glDisable(GL_TEXTURE_2D);
+
+
+
+	std::string s = { "Score: " };
+	s = s + std::to_string(player1Score);
+	glRasterPos3f((float)cameraX + 5.0f, (float)cameraY + (float)GAME_HEIGHT - 16.0f, -1.0f);
+	render_string(GLUT_BITMAP_HELVETICA_18, s);
+}
+
+
 
 void cGame::CameraUpdate(int px, int py)
 {
@@ -337,6 +500,8 @@ void cGame::ProjectilesLogic()
 				if (Player.isAlive() && Player.collidesWith(Bullets[i].getAABB())){
 					Player.impact(Bullets[i].GetDamage(), 0);
 					Bullets[i].impact();
+					gamepad.vibrate(1);
+
 				}
 			}
 			else{
@@ -388,14 +553,20 @@ void cGame::collisionsLogic()
 	for (int i = 0; i < levelZombies; i++){
 		if (zombies[i].isAlive() && !zombies[i].isDying() && Player.collidesWith(zombies[i].getAABB()) ){
 			Player.impact(zombies[i].getDamage(), 0);
+			gamepad.vibrate(1);
 		}
 	}
 	for (int i = 0; i < levelTanks; ++i){
 		if (tanks[i].isAlive() && !tanks[i].isDying() && Player.collidesWith(tanks[i].getAABB())){
 			Player.impact(tanks[i].getDamage(), 0);
+			gamepad.vibrate(1);
+
 		}
 	}
-	if (demon.isAlive() && Player.collidesWith(demon.getAABB())) Player.impact(demon.getDamage(), 0);
+	if (demon.isAlive() && Player.collidesWith(demon.getAABB())){
+		Player.impact(demon.getDamage(), 0);
+		gamepad.vibrate(1);
+	}
 }
 
 cScene cGame::getScene()
@@ -414,13 +585,13 @@ struct position{
 };
 
 
-//falta ficar bosses
 void cGame::levelInits(int lvl)
 {
 
 	level = lvl;
 	bool res = true;
 	gameEnd = false;
+	
 	//Graphics initialization
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glMatrixMode(GL_PROJECTION);
@@ -535,6 +706,7 @@ void cGame::levelInits(int lvl)
 
 void cGame::gameOver()
 {
+	menu = GAMEOVER_MENU;
 	gameEnd = true;
 	BASS_ChannelStop(hBackgroundChannel);
 	hBackgroundChannel = BASS_SampleGetChannel(gameOverMusic, false);
@@ -558,13 +730,11 @@ void cGame::levelFinished()
 {
 	if (level < 2){
 		level++;
-		levelInits(level);
-		
-		//cargar nou lvl, etc
+		levelInits(level);	
 	}
 	else{
-		//mostrar pantalla final blabalba
 		gameFinished = true;
+		menu = GAMEWIN_MENU;
 		BASS_ChannelStop(hBackgroundChannel);
 		hBackgroundChannel = BASS_SampleGetChannel(gameWinMusic, false);
 		BASS_ChannelPlay(hBackgroundChannel, true);
@@ -603,6 +773,10 @@ void cGame::emitSound(int type){
 		hTankChannel = BASS_SampleGetChannel(shootEnemySound, false);
 		BASS_ChannelPlay(hTankChannel, false);
 		break;
-		
+	case SOUND_MENU_MOV:
+		hPlayerChannel = BASS_SampleGetChannel(menuMovement, false);
+		BASS_ChannelPlay(hPlayerChannel, false);
+		break;
 	}
 }
+

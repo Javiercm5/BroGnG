@@ -6,7 +6,7 @@
 cTank::cTank()
 {
 	STEP_LENGTH = 1;
-	FRAME_DELAY = 13;
+	FRAME_DELAY = 8;
 	bichoDelay = 30;
 	damage = 2;
 
@@ -60,7 +60,7 @@ void cTank::Draw(int tex_id)
 		{
 		case STATE_LOOK:	xo = 0.0f; break;
 		case STATE_WALK:	xo = (GetFrame()*(upp*64.0f));
-			NextFrame(3); break;
+			NextFrame(4); break;
 		case STATE_SHOOT:
 			xo = 3.0f * 64.0f*upp + (GetFrame()*(upp*64.0f));
 			NextFrame(3); break;

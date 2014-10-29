@@ -44,6 +44,9 @@
     <ClCompile Include="cDemon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cXboxController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cBicho.h">
@@ -77,6 +80,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cDemon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cXboxController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
