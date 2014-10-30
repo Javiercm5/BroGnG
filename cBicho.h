@@ -3,15 +3,12 @@
 #include "cTexture.h"
 #include "Globals.h"
 
-//#define FRAME_DELAY		4
-//#define STEP_LENGTH		2
 #define JUMP_HEIGHT		96
 #define JUMP_STEP		4
 
 #define STATE_LOOK			0
 #define STATE_WALK			1
-#define	STATE_CROUCH		2
-#define	STATE_SHOOT			3
+#define	STATE_SHOOT			2
 
 class cRect
 {
@@ -52,12 +49,11 @@ public:
 	void Stop();
 	void Logic(int *map);
 
-	void crouch();	//NEW
-	void shoot();	//NEW
+	void shoot();	
 
 	int  GetState();
 	void SetState(int s);
-	void SetDirection(int r);	//NEW
+	void SetDirection(bool r);	
 	bool isFacingRight();
 
 	void NextFrame(int max);
@@ -78,6 +74,8 @@ public:
 
 	bool isInTheAir();
 
+	void setAlive(bool sAlive);
+
 private:
 	int x, y;
 	int w, h;
@@ -96,15 +94,16 @@ protected:
 	bool crouching;
 	bool dying;
 	int deadBy;
+	int stateMaxFrames[3];
 
 
 	bool canGoForward(bool goRight, int *map);
 
-	int STEP_LENGTH = 2;
-	int FRAME_DELAY = 4;
+	int STEP_LENGTH;
+	int FRAME_DELAY;
 
 	int health;
-	int alive;
+	bool alive;
 	int shootDelay, bichoDelay, dyingDelay;
 	int damage;
 

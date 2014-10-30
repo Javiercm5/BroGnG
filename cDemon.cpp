@@ -22,45 +22,34 @@ cDemon::~cDemon()
 void cDemon::init()
 {
 	alive = true;
-	health = 20;
+	health = 10;
 	shootDelay = 0;
 	dying = false;
 }
 
 
-void cDemon::intelligence(int *map, int playerX, int playerY)
+void cDemon::intelligence(cGame& g)
 {
 	int posx, posy;
 	GetPosition(&posx, &posy);
-	int threshold = std::abs(playerX - posx);
-	if (threshold <= 3 * 36) waiting = false;
+	int *map = g.getScene().GetMap();
 	bool attack = false;
+	bool walk = true;
 
-	if (waiting) SetState(STATE_LOOK);
-	else{
-		bool walk;
-		if (playerY == posy){
-			
-			//ESCAPE
-			if (threshold <= 2 * 36){
-				walk = true;
-				if (playerX < posx) goRight = true;
-				else goRight = false;
-
-				if ((goRight && !canGoForward(true, map))) attack = true;
-				else if (!goRight && !canGoForward(false, map)) attack = true;
-				else (goRight ? MoveRight(map) : MoveLeft(map));
-			}
-
-			//ATTACK
-			if (attack || threshold > 2 * 36){
+	for (int i = 0; i < g.getNumPlayers(); ++i){
+		int threshold = std::abs(g.getPlayer(i).GetPositionX() - posx);
+		if (g.getPlayer(i).isAlive() && (posy >= (g.getPlayer(i).GetPositionY() - 36) && posy <= (g.getPlayer(i).GetPositionY() + 36))){
+			if (threshold <= 5 * 36){
 				walk = false;
-				if (playerX > posx) goRight = facingRight = true;
-				else goRight = facingRight = false;
+				(g.getPlayer(i).GetPositionX() > posx ? goRight = facingRight = true : goRight = facingRight = false);
 				shoot();
-			}		
+			}
+			else {
+				if ((g.getPlayer(i).GetPositionX() > posx) && (canGoForward(false, map) == false)) goRight = true;
+				else if ((g.getPlayer(i).GetPositionX() < posx) && (canGoForward(true, map) == false)) goRight = false;
+				(goRight ? MoveRight(map) : MoveLeft(map));       
+			}
 		}
-		else waiting = true;
 	}
 }
 
@@ -68,7 +57,7 @@ void cDemon::intelligence(int *map, int playerX, int playerY)
 
 void cDemon::Draw(int tex_id)
 {
-	if (!dying || (glutGet(GLUT_ELAPSED_TIME) / 300) % 2){
+	if (!dying || (glutGet(GLUT_ELAPSED_TIME) / 150) % 2){
 
 		float xo, yo, xf, yf;
 		float upp = 1.0f / 1024.0f;	//Units Per Pixel
@@ -103,14 +92,14 @@ void cDemon::Update(cGame& g)
 			g.levelFinished();
 
 		}
-		else intelligence(g.getScene().GetMap(), g.getPlayer(0).GetPositionX(), g.getPlayer(0).GetPositionY());
+		else intelligence(g);
 
 
 		Logic(g.getScene().GetMap());
 
 		if (shootDelay == bichoDelay){
-			if(facingRight)g.addProjectile(facingRight, GetPositionX()+64, GetPositionY() + 30, TYPE_FIREBALL, true);
-			else g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_FIREBALL, true);
+			if (facingRight)g.addProjectile(facingRight, GetPositionX() + 64, GetPositionY() + 30, TYPE_FIREBALL, -1);
+			else g.addProjectile(facingRight, GetPositionX() , GetPositionY() + 30, TYPE_FIREBALL, -1);
 			g.emitSound(SOUND_SHOOT_ENEMY);
 		}
 		if (shootDelay > 0) --shootDelay;

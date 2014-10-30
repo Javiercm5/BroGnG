@@ -1,11 +1,15 @@
 
 #include "cPlayer.h"
 #include "cGame.h"
-#include "iostream"
 
 cPlayer::cPlayer()
 {
 	bichoDelay = 15;
+	stateMaxFrames[STATE_LOOK] = 1;
+	stateMaxFrames[STATE_WALK] = 7;
+	stateMaxFrames[STATE_SHOOT] = 2;
+	FRAME_DELAY = 4;
+	bulletsDelay = PROJECTILES_PLAYER_DELAY;
 }
 cPlayer::~cPlayer()
 {}
@@ -21,8 +25,14 @@ void cPlayer::init()
 	facingRight = true;
 	shootDelay = 0;
 	dyingDelay = 0;
+
 }
 
+
+void cPlayer::setPlayerNumber(int number)
+{
+	playerNum = number;
+}
 
 void cPlayer::Draw(int tex_id)
 {
@@ -32,34 +42,20 @@ void cPlayer::Draw(int tex_id)
 
 		yo = upp * (facingRight ? 40.0f : 80.0f);
 		if (health <= 2) yo = upp * (facingRight ? 520.0f : 560.0f);
-		if (jumping) {
-			xo = 0.0f + upp*36.0f*7.0f;
-			int state = GetState();
-			if (state == STATE_WALK) xo = 0.0f + upp*36.0f*8.0f;
-			else if (state == STATE_SHOOT){
-				xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
-				NextFrame(2);
-			}
-		}
+		switch (GetState())
+		{
+			case STATE_LOOK:
+				if (jumping)xo = 0.0f + upp*36.0f*7.0f;
+				else xo = 0.0f; 
+				break;
+			case STATE_WALK:	
+				if (jumping) xo = 0.0f + upp*36.0f*8.0f;
+				else xo = 0.0f + (GetFrame()*(upp*36.0f));
+				break;
 
-		else if (falling){
-			xo = 0.0f + upp*36.0f*7.0f;
-			if (GetState() == STATE_SHOOT) {
-				xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
-				NextFrame(2);
-			}
-		}
-		else{
-			switch (GetState())
-			{
-			case STATE_LOOK:	xo = 0.0f; break;
-			case STATE_WALK:	xo = 0.0f + (GetFrame()*(upp*36.0f));
-				NextFrame(7); break;
-				//case STATE_CROUCH:	xo = 0.0f + upp*36.0f*11.0f; break;
-
-			case STATE_SHOOT:	xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f));
-				NextFrame(2); break;
-			}
+			case STATE_SHOOT:	
+				xo = 0.0f + upp*36.0f*12.0f + (GetFrame()*(upp*36.0f)); 
+				break;
 		}
 
 		xf = xo + upp * 36.0f;
@@ -73,10 +69,8 @@ void cPlayer::impact(int damage, int player) {
 	
 	if (!godMode){
 		health -= damage;
-		if (health <= 0) alive = false;
 		
-		//godmode 3 sec
-		else{
+		if(health > 0){
 			godMode = true;
 			invulnerableDelay = 100;
 		}
@@ -87,8 +81,9 @@ void cPlayer::impact(int damage, int player) {
 void cPlayer::Update(cGame& g)
 {
 	if (health <= 0 && !g.isOver()){
-		g.gameOver();
 		alive = false;
+		g.gameOver();
+
 	}
 	else{
 		if (godMode){
@@ -98,16 +93,17 @@ void cPlayer::Update(cGame& g)
 
 
 		Logic(g.getScene().GetMap());
+
+		if (GetState() != STATE_LOOK){
+			NextFrame(stateMaxFrames[GetState()]);
+		}
+
 		if (shootDelay == bichoDelay){
-			if (facingRight) g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR, false);
-			else g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR, false);
+			g.addProjectile(facingRight, GetPositionX(), GetPositionY() + 30, TYPE_SPEAR, playerNum);
 			g.emitSound(SOUND_SHOOT_PLAYER);
 		}
 		if (shootDelay > 0) --shootDelay;
 	}
-
-
-
 }
 
 

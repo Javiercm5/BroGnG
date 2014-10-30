@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Globals.h"
-//#include "cGame.h"
 
 #define TYPE_SPEAR		0
 #define TYPE_FIREBALL	1
@@ -15,7 +14,7 @@ private:
 	int posX, posY, w, h;	
 	int projectileType, speed, damage;
 	int seq, delay, FRAME_DELAY;
-	bool isFromEnemy;
+	int owner;		//-1 enemy, 0...n players
 
 	bool CollidesMapWall(int *map, bool right);
 	void NextFrame(int max);
@@ -27,8 +26,8 @@ public:
 	cProjectile();
 	~cProjectile();
 
-	void shoot(bool shootRight, int xo, int yo, int type, bool enemy);
-	bool isEnemy();
+	void shoot(bool shootRight, int xo, int yo, int type, int fromWho);
+	int whoIsFrom();
 	void impact();
 	bool collideWith(AABB other);
 	void logic(int *map);

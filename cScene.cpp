@@ -1,6 +1,5 @@
 #include "cScene.h"
 #include "Globals.h"
-#include "iostream"
 
 cScene::cScene(void)
 {

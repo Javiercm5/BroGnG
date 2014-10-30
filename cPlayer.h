@@ -20,13 +20,15 @@ public:
 	int getHealth();
 	void heal(int amount);
 	void init() override;
+	void setPlayerNumber(int number);
 
 
 
 private:
-	int bulletsDelay = PROJECTILES_PLAYER_DELAY;
+	int bulletsDelay;
 	bool godMode;
 	int invulnerableDelay;
 	bool isGod();
+	int playerNum;
 
 };

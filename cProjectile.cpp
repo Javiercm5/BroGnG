@@ -14,13 +14,13 @@ cProjectile::cProjectile()
 
 cProjectile::~cProjectile(){}
 
-void cProjectile::shoot(bool shootRight, int xo, int yo, int type, bool enemy)	
+void cProjectile::shoot(bool shootRight, int xo, int yo, int type, int fromWho)	
 {
 	facingRight = shootRight;
 	posX = xo;
 	posY = yo;
 	alive = true;
-	isFromEnemy = enemy;
+	owner = fromWho;
 	
 	switch (type){
 		case TYPE_SPEAR: 
@@ -41,14 +41,8 @@ void cProjectile::impact(){
 	alive = false;
 }
 
-
-
-
-
 void cProjectile::logic(int *map)
 {
-	int xaux;
-
 	(facingRight ? posX += speed : posX -= speed);
 	if (CollidesMapWall(map, facingRight)){
 		impact();
@@ -168,9 +162,9 @@ int cProjectile::GetType()
 	return projectileType;
 }
 
-bool cProjectile::isEnemy()
+int cProjectile::whoIsFrom()
 {
-	return isFromEnemy;
+	return owner;
 }
 
 bool cProjectile::collideWith(AABB other)

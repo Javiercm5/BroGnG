@@ -10,11 +10,16 @@ cBicho::cBicho(void)
 	jumping = false;
 	crouching = false;
 	facingRight = true;
-	alive = true;
+	alive = false;
 	health = 2;
 	shootDelay = 0;
 	bichoDelay = 15;
 	dyingDelay = 0;
+
+	stateMaxFrames[STATE_LOOK] = 1;
+	stateMaxFrames[STATE_WALK] = 1;
+	stateMaxFrames[STATE_SHOOT] = 1;
+	STEP_LENGTH = 2;
 }
 cBicho::~cBicho(void){}
 cBicho::cBicho(int posx, int posy, int width, int height)
@@ -36,7 +41,7 @@ void cBicho::GetPosition(int *posx, int *posy)
 	*posx = x;
 	*posy = y;
 }
-void cBicho::SetDirection(int r)
+void cBicho::SetDirection(bool r)
 {
 	facingRight = r;
 }
@@ -73,8 +78,7 @@ void cBicho::GetWidthHeight(int *width, int *height)
 }
 
 
-
-//=======================================COLLISION CONTROL
+// COLLISION CONTROL
 bool cBicho::Collides(cRect *rc)
 {
 	return ((x>rc->left) && (x + w<rc->right) && (y>rc->bottom) && (y + h<rc->top));
@@ -213,6 +217,14 @@ bool cBicho::collidesWith(AABB other)
 
 
 
+
+
+void cBicho::setAlive(bool sAlive)
+{
+	alive = sAlive;
+}
+
+
 void cBicho::die(int player)
 {
 	dying = true;
@@ -325,7 +337,6 @@ void cBicho::Stop()
 	switch (state)
 	{
 	case STATE_WALK:	state = STATE_LOOK;	break;
-	case STATE_CROUCH:	state = STATE_LOOK;	break;
 	}
 	falling = false;
 	crouching = false;
@@ -343,14 +354,12 @@ bool cBicho::Jump(int *map)
 	}
 	return jumping;
 }
-void cBicho::crouch()
-{
-	crouching = true;
-}
+
 void cBicho::shoot()
 {
 	if (shootDelay == 0) {
 		SetState(STATE_SHOOT);
+		seq = 0;
 		shootDelay = bichoDelay;
 	}
 }
@@ -358,7 +367,7 @@ void cBicho::shoot()
 void cBicho::Logic(int *map)
 {
 	float alfa;
-	falling = false;	//REVISAR
+	falling = false;
 	if (CollidesMapCeiling(map)) jumping = false;
 	if (jumping)
 	{
@@ -389,7 +398,6 @@ void cBicho::Logic(int *map)
 
 			falling = true;
 		}
-		//estat falling
 	}
 
 }
@@ -400,7 +408,8 @@ void cBicho::NextFrame(int max)
 	delay++;
 	if (delay == FRAME_DELAY)
 	{
-		if (++seq >= max) {
+		++seq;
+		if (seq >= max) {
 			seq %= max;
 			if (state == STATE_SHOOT) SetState(STATE_LOOK);
 		}

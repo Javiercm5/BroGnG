@@ -10,7 +10,7 @@ class cTank :
 public:
 	cTank();
 	~cTank();
-	void intelligence(int *map, int playerX, int playerY);
+	void intelligence(cGame& g);
 	void Draw(int tex_id);
 	void Update(cGame& g) override;
 	void init() override;

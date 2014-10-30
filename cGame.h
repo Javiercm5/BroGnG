@@ -28,6 +28,7 @@
 #define CREDITS_MENU		2
 #define GAMEOVER_MENU		3
 #define GAMEWIN_MENU		4
+#define PLAYERSSELECT_MENU	5
 #define NO_MENU				-1
 
 class cGame
@@ -47,20 +48,22 @@ public:
 	bool Process();
 	//Output
 	void Render();
+
 	cScene getScene();
-	void addProjectile(bool right, int x, int y, int type, bool enemy);
+	void addProjectile(bool right, int x, int y, int type, int shooter);
 	cPlayer getPlayer(int nPlayer);
 	void gameOver();
 	void levelFinished();
 	void updateScore(int points, int player);
 	bool isOver();
 	void emitSound(int type);
+	int getNumPlayers();
 
 
 private:
 	//CONTROLS
 	unsigned char keys[256];
-	cXboxController gamepad;
+	cXboxController gamepad[2];
 
 	//SOUND
 	HWND handle;
@@ -70,13 +73,16 @@ private:
 	//GAME
 	int level;
 	cData Data;
-	int player1Score;
-	int menu, optionSelected;
+	bool multiplayer;
+	int score[2];
+	int nPlayers;
+	int menu, optionSelected, playerselected;
+	bool pause;
 	int keyDelay;
 
 	cScene Scene;
 	int cameraX, cameraY;
-	cPlayer Player;
+	cPlayer Players[2];
 	int levelZombies, levelTanks;
 	cZombie zombies[MAX_ZOMBIES];
 	cTank tanks[MAX_TANKS];
@@ -85,7 +91,7 @@ private:
 
 
 
-	void CameraUpdate(int px, int py);
+	void CameraUpdate(int px, int py, int playerNum);
 	void ProjectilesLogic();
 	void collisionsLogic();
 	void levelInits(int lvl);
@@ -94,6 +100,6 @@ private:
 	bool gameFinished;
 
 	void loadResources();
-	void drawHud();
+	void drawHud(int playerNum);
 
 };
